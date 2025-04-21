@@ -1,0 +1,70 @@
+Xbox One S Controller Button Mapping in Bluetooth
+
+Source: https://github.com/ECU-ATMAE-ROBOTICS/ControllerCommon
+* Values were retrieved from running the test script in the repo
+
+NOTE: Number of Buttons/Axis detected may be different based on the following factors
+1. Type of controller connected (Base Controller, Elite Controller, etc)
+2. Connection type (Bluetooth or USB)
+
+
+-----------Axis---------
+* Note that values are analogue, range from -1 to 1
+
+
+--Left Joystick--
+Axis #0: Left-Right | -1 to 1
+Axis #1: Up-Down | -1 to 1
+
+--Right Joystick--
+Axis #2: Left-Right | -1 to 1
+Axis #3: Up-Down | -1 to 1
+
+--Right Trigger--
+Axis #4: Unpressed-Fully Pressed | -1 to 1
+
+--Left Trigger--
+Axis #5: Unpressed-Fully Pressed | -1 to 1
+
+
+
+
+----------Buttons----------
+* For every button, values are 0 for unpressed and 1 for pressed
+
+Button #0: A 
+Button #1: B
+Button #3: X
+Button #4: Y
+Button #6: Left Bumper
+Button #7: Right Bumper
+Button #10: Button to the left of the logo
+Button #11: (Menu Button) Button to the right of the logo
+Button #12: Xbox Logo
+Button #13: Left Joystick
+Button #14: Right Joystick
+
+
+--------D-Pad---------
+* D-Pad value is a tuple (x,y)
+* x and y values are either -1,0, or 1
+
+
+
+
+______(0,1)|Up__________
+|		       |
+|                      | 
+|		       |
+|		       |
+(-1,0)|Left	       (1,0)|Right
+|		       |
+|		       |	
+|		       |	
+|______(0,-1)|Down_____|
+
+
+
+
+
+ 
