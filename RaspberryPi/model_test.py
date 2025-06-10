@@ -1,16 +1,21 @@
+import cv2
 from ultralytics import YOLO
-from PIL import Image, ImageDraw
 
-img_path = 'test_images/car.jpg'
+model = YOLO('model/yolov8_edgetpu.tflite', task='detect')
+img = cv2.imread('test_images/boxes.jpg')
+img = cv2.resize(img, (420,420))
+print(img.shape)
+results = model.predict(img)[0]
 
-model = YOLO("model/yolo11n_edgetpu.tflite", task='detect')
-count = 0
-while count < 5:
-    img = Image.open(img_path)
-    img = img.resize((200,200))
-    results = model.predict(img)[0].boxes
-    imgDraw = ImageDraw.Draw(img)
-    imgDraw.rectangle(results.xyxy[0].numpy().tolist(), outline='red', width=1)
-    print(results.xyxy[0].numpy().tolist())
-    count += 1
-    #img.show()
+print(len(results.boxes.xyxy))
+for box in results.boxes.xyxy:
+    box = box.int().tolist()
+    print(box)
+
+    cv2.rectangle(img, box[:2], box[2:], (0,0,255), 2)
+    cv2.imwrite('yolo_output.jpg', img)
+
+
+
+
+#img.show()

@@ -1,20 +1,37 @@
 import cv2
-import time
-from PIL import Image, ImageDraw
 from ultralytics import YOLO
+import os
+import time
 
-model = YOLO('model/yolo11n_edgetpu.tflite')
+os.environ['QT_QPA_PLATFORM'] = 'xcb'
+
+model = YOLO('model/ecu_model_edgetpu.tflite', task='detect')
 cam = cv2.VideoCapture(0)
-#ref, frame = cam.read()
-frame_count = 0
+pic_count = 0
+
+start= time.time()
 while True:
+
     ref, frame = cam.read()
-    try:
-        x0,y0,x1,y1 = model.predict(source=frame)[0].boxes.xyxy[0].tolist()
-        #frame = cv2.rectangle(frame, (x0,y1), (x1, y0), color=(0,0,255), thickness=2)
-        print(x0, y0, x1, y1)
-    except:
-        print("no boxes")
-        pass
-    frame_count += 1
-    #cv2.imshow("frame", frame)
+
+
+    if cv2.waitKey(1) and 0xFF == ord('q'): #or button == 'q':
+        cv2.destroyAllWindows()
+        cam.release()
+        break
+    elif (time.time()-start) > 2 :
+        
+        try:
+            
+            boxes= model.predict(source=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))[0].boxes.xyxy.int().tolist()
+            print(boxes)        
+            for box in boxes:
+                cv2.rectangle(frame, box[:2], box[2:], (0,0,255), 2)
+        
+        except Exception as e:
+            print("Error:", e)
+
+        start = time.time()
+        
+        if len(boxes) > 0:
+            cv2.imshow('frame', frame)
