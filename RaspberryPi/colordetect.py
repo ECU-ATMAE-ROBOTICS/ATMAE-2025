@@ -3,10 +3,14 @@ import numpy as np
 import random
 
 def sort_bins(colors, boxes):
+    """
+    YOLO box output isnt from left to right
+    this functions sorts the output from left to right
+    """
     final_colors = colors[:]
     final_boxes = boxes[:]
 
-    #Bubble sort bby
+    #Bubble sort
     for i in range(len(final_colors)):
         for j in range(len(final_colors)-i-1):
             if final_boxes[j][0] > final_boxes[j+1][0]:
@@ -26,7 +30,7 @@ def sort_bins(colors, boxes):
 
 def detect_color(img):
     """
-    Determines the most prevalent color in an image
+    Isolates the tape on the box and returns the color of the tape
     """
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     
@@ -73,19 +77,17 @@ def validate_box_colors(stored_color, detected_colors):
 
 
 
-#Crops image to get box color
 def get_box_colors(img,boxes):
+    """
+    Crops the image to the bbox and
+    retrieves the tape color from the box
+    """
     colors = []
     
     for ind,box in enumerate(boxes):
         x0,y0,x1,y1 = box
         cropped_image = img[y0:y1, x0:x1]
         
-        #Further cropping the image to focus on tape
-        h,w = cropped_image.shape[:2]
-        #cropped_image = cropped_image[int(.25*h):int(h-(.25*h)), int(.30*w):int(w-(.30*w))] 
-
-
         colors.append(detect_color(cropped_image))
         
     if len(colors) > 0:

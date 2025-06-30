@@ -1,7 +1,14 @@
 import math
 
 def determine_direction(img, colors, boxes, reference,threshold):
-   
+    """
+    __params__
+        img: image from camera
+        colors - list: detected tape colors
+        boxes - list: boxes from YOLO model
+        reference - str: box color to target
+        threshold - int: size of the middle section of image
+    """
     #Get center of image
     img_height, img_width = img.shape[:2]
     img_center = [img_height//2, img_width//2]
@@ -27,15 +34,16 @@ def determine_direction(img, colors, boxes, reference,threshold):
     
     percent_covered = (bin_per/image_per) * 100
 
-    print("image perimeter: ",image_per)
-    print("box perimeter: ", bin_per)
+    #print("image perimeter: ",image_per)
+    #print("box perimeter: ", bin_per)
 
-    print("percent covered: ", percent_covered)
+    #print("percent covered: ", percent_covered)
 
     #Stop the bot if it's close enough and aligned
     if percent_covered > 40 and bin_center[1] < img_center[1]+60 and bin_center[1] > img_center[1]-60:
         return "stop"
     
+    #Determine direction of bot
     if bin_center[1] > img_center[1]+threshold:
         return "right"
     elif bin_center[1] < img_center[1]+threshold and bin_center[1] > img_center[1]-threshold:

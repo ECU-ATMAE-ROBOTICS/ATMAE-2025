@@ -34,46 +34,45 @@ while True:
         break
         
     try:
-
+        #frame and crop
         frame = cv2.resize(frame, (420,420))
         frame = frame[:, 100:]
+
         # Get image dimensions
         (h, w) = frame.shape[:2]
         center = (w // 2, h // 2)
 
-        # Define rotation matrix: rotate 45 degrees counter-clockwise
+        # Define rotation matrix: rotate 90 degrees clockwise
         angle = -90
         scale = 1.0  # Keep original size
         rotation_matrix = cv2.getRotationMatrix2D(center, angle, scale)
 
         # Apply the rotation
         frame = cv2.warpAffine(frame, rotation_matrix, (w, h))
-
+        
+        # Get bboxes from model
         boxes= model.predict(source=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), iou=.3)[0].boxes.xyxy.int().tolist()
 
         if len(boxes) > 0:
+            # Get colors from bins and sort bins from left to right
             colors = colordetect.get_box_colors(frame, boxes)
             colors,boxes = colordetect.sort_bins(colors,boxes)
-
-            try:
-                direction = direct.determine_direction(frame, colors, boxes, "blue", 40)
             
-            except Exception as e:
-                print("Error with getting direction: ",e)
-
+            # ----Colored bin to track ("blue") is hardcoded right now, will be automatically determined in the future-----
+            direction = direct.determine_direction(frame, colors, boxes, "blue", 40)
+           
+           # Comment this out if you dont need visualization
             for indx, box in enumerate(boxes):
                 cv2.rectangle(frame, box[:2], box[2:], (0,0,255), 2)
                 frame = cv2.putText(frame, colors[indx], (box[0],box[1]), cv2.FONT_HERSHEY_SIMPLEX, .5, (0,0,0), 1)
-
-
-
         
     except Exception as e:
         print("Error:", e)
     
+    # Comment this out if you dont need visualization
     if direction is not None:
         frame = cv2.putText(frame, direction, (40,20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
 
-    print(direction)
-    cv2.imshow('frame', frame)
+    
+    cv2.imshow('frame', frame) #comment this out if you dont need visualization
     time.sleep(.02)
