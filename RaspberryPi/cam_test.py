@@ -12,8 +12,6 @@ if not cam.isOpened():
     print("Error: Could not open video.")
     exit()
 
-start= time.time()
-
 
 direction = None
 while True:
