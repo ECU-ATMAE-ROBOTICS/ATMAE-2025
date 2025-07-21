@@ -6,7 +6,7 @@ import direct
 
 
 model = YOLO('model/best2_full_integer_quant_edgetpu.tflite', task='detect')
-cam = cv2.VideoCapture("test_images/vid2.mp4")
+cam = cv2.VideoCapture(0)
 
 if not cam.isOpened():
     print("Error: Could not open video.")
@@ -36,20 +36,7 @@ while True:
     try:
         #frame and crop
         frame = cv2.resize(frame, (420,420))
-        frame = frame[:, 100:]
-
-        # Get image dimensions
-        (h, w) = frame.shape[:2]
-        center = (w // 2, h // 2)
-
-        # Define rotation matrix: rotate 90 degrees clockwise
-        angle = -90
-        scale = 1.0  # Keep original size
-        rotation_matrix = cv2.getRotationMatrix2D(center, angle, scale)
-
-        # Apply the rotation
-        frame = cv2.warpAffine(frame, rotation_matrix, (w, h))
-        
+               
         # Get bboxes from model
         boxes= model.predict(source=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), iou=.3)[0].boxes.xyxy.int().tolist()
 
