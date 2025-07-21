@@ -32,7 +32,6 @@ scipy==1.15.3
 six==1.17.0
 smbus2==0.5.0
 sympy==1.14.0
-tflite-runtime @ file:///home/ecu/Desktop/ATMAE-2025/RaspberryPi/model/tflite_runtime-2.15.0-cp311-cp311-linux_aarch64.whl
 torch==2.7.1
 torchvision==0.22.1
 tqdm==4.67.1
