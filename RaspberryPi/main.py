@@ -5,15 +5,26 @@ import serial
 import time
 import logging
 import pygame
+import os
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
+log_path = "/home/ecu/Desktop/ATMAE-2025/RaspberryPi/logs/" 
 
 try:
         if __name__ == "__main__":
-            log_path = r'/home/ecu/Desktop/ATMAE-2025/RaspberryPi/logs/main.log'
-            logging.basicConfig(filename=f'{log_path}\main.log', level=logging.INFO)
-            logger.info("Started\n[bleh]")
+            
+            #Removing old log files
+            for file in os.listdir(log_path):
+                file_path = os.path.join(log_path, file)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
 
+            log_path = r'/home/ecu/Desktop/ATMAE-2025/RaspberryPi/logs/main.log'
+            logging.basicConfig(filename=log_path, level=logging.INFO)
+            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Started\n[bleh]")
+
+            try_counter = 5 #Amount of tries arduino or controller have to connect
 
             arduino_connected = False
             arduino = None
@@ -23,42 +34,43 @@ try:
 
 
             # Connect to the Xbox Controller
-            logger.info("Attempting to connect to controller")
+            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Attempting to connect to controller")
             while not controller_connected:
+                if try_counter == 0:
+                    raise 
                 try:
                     pygame.init()
                     controller = XboxController(deadZone=0.35)
                     controller_connected = True
                 
                 except pygame.error:
-                    logger.error("Couldn't connect to controller, trying again in 1 sec")
+                    logger.error(f"|{datetime.now().strftime('%H:%M:%S')}|Couldn't connect to controller, trying again in 1 sec")
                     pygame.joystick.quit()
                     time.sleep(1)
-            logger.info("Connected to controller!")
+            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Connected to controller!")
 
             # Connect to Arduino
-            logger.info("Attempting to connect to arduino")
+            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Attempting to connect to arduino")
             while not arduino_connected:
                 try:
-                    arduino = serial.Serial("COM3", 9600, timeout=1)
+                    arduino = serial.Serial("/dev/ttyACM0", 9600, timeout=1)
                     arduino.reset_input_buffer()
                     arduino.reset_output_buffer()
                     arduino_connected = True
                 except serial.serialutil.SerialException:
-                    logging.error("Couldn't connect to Arduino, trying again in 1 sec")
+                    logging.error(f"|{datetime.now().strftime('%H:%M:%S')}|Couldn't connect to Arduino, trying again in 1 sec")
                     time.sleep(1)
-            logger.info("Connected to arduino!")
+            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Connected to arduino!")
 
 
             #Testing serial communication
-            logger.info("Testing serial communication")
+            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Testing serial communication")
 
             while arduino.in_waiting == 0:
                 arduino.write("Testing\n".encode("utf-8"))
                 time.sleep(1)
 
-            logger.info(f"Serial testing successfull! Message from arduino: {arduino.readline().rstrip()}")
-
+            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Serial testing successfull! Message from arduino: {arduino.readline().rstrip()}")
 
 
             while True:
@@ -72,20 +84,23 @@ try:
                         match inputID:
                             #View Button
                             case 21:
-                                logger.info("In auto mode")
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|In auto mode")
                                 robotmodes.auto(controller, arduino)
-                                logger.info("In neutral mode")
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|In neutral mode")
 
                             #Menu Button
                             case 22:
-                                logger.info("In teleop mode")
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|In teleop mode")
                                 robotmodes.teleop(controller, arduino)
-                                logger.info("In neutral mode")
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|In neutral mode")
+
+
 except KeyboardInterrupt:
-    arduino.close()
+    if arduino != None:    
+        arduino.close()
     pygame.quit()
 
-    logger.info("Program cancelled by user")
+    logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Program cancelled by user")
     exit()
 
 
