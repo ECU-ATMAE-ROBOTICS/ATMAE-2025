@@ -5,7 +5,7 @@ import colordetect
 import direct
 
 
-model = YOLO('model/best2_full_integer_quant_edgetpu.tflite', task='detect')
+model = YOLO(r'C:\Users\lozan\OneDrive\Desktop\ATMAE-2025\ATMAE-2025\RaspberryPi\model\best.pt', task='detect')
 cam = cv2.VideoCapture(0)
 
 if not cam.isOpened():
