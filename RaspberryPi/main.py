@@ -24,8 +24,6 @@ try:
             logging.basicConfig(filename=log_path, level=logging.INFO)
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Started\n[bleh]")
 
-            try_counter = 5 #Amount of tries arduino or controller have to connect
-
             arduino_connected = False
             arduino = None
 
@@ -36,8 +34,6 @@ try:
             # Connect to the Xbox Controller
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Attempting to connect to controller")
             while not controller_connected:
-                if try_counter == 0:
-                    raise 
                 try:
                     pygame.init()
                     controller = XboxController(deadZone=0.35)
