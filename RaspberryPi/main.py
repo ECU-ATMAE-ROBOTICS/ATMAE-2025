@@ -9,7 +9,7 @@ import os
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
-log_path = "/home/ecu/Desktop/ATMAE-2025/RaspberryPi/logs/" 
+log_path = "/home/ubuntu/Desktop/ATMAE-2025/RaspberryPi/logs" 
 
 try:
         if __name__ == "__main__":
@@ -20,7 +20,7 @@ try:
                 if os.path.isfile(file_path):
                     os.remove(file_path)
 
-            log_path = r'/home/ecu/Desktop/ATMAE-2025/RaspberryPi/logs/main.log'
+            log_path = log_path + r'/main.log'
             logging.basicConfig(filename=log_path, level=logging.INFO)
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Started\n[bleh]")
 
@@ -36,7 +36,7 @@ try:
             while not controller_connected:
                 try:
                     pygame.init()
-                    controller = XboxController(deadZone=0.35)
+                    controller = XboxController(deadZone=0.2)
                     controller_connected = True
                 
                 except pygame.error:

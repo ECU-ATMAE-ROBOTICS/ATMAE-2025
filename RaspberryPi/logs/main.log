@@ -1,0 +1,11 @@
+INFO:__main__:|11:11:35|Started
+[bleh]
+INFO:__main__:|11:11:35|Attempting to connect to controller
+INFO:__main__:|11:11:35|Connected to controller!
+INFO:__main__:|11:11:35|Attempting to connect to arduino
+INFO:__main__:|11:11:35|Connected to arduino!
+INFO:__main__:|11:11:35|Testing serial communication
+INFO:__main__:|11:11:36|Serial testing successfull! Message from arduino: b'Err'
+INFO:__main__:|11:11:43|In teleop mode
+INFO:__main__:|11:15:07|In neutral mode
+INFO:__main__:|11:15:09|In auto mode
