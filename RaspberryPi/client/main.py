@@ -1,5 +1,5 @@
 from ControllerCommon.XboxController import XboxController
-import RaspberryPi.client.robotmodes as robotmodes
+import robotmodes
 
 import serial
 import time
