@@ -1,5 +1,5 @@
 from ControllerCommon.XboxController import XboxController
-import robotmodes
+import RaspberryPi.client.robotmodes as robotmodes
 
 import serial
 import time
@@ -9,7 +9,7 @@ import os
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
-log_path = "/home/ubuntu/Desktop/ATMAE-2025/RaspberryPi/logs" 
+log_path = "/home/ubuntu/Desktop/ATMAE-2025/RaspberryPi/client/logs" 
 
 try:
         if __name__ == "__main__":
