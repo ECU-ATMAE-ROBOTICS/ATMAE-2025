@@ -10,8 +10,8 @@ import direct
 
 HOST = ''  # Listen on all interfaces
 PORT = 9999
-MODEL = YOLO(r"RaspberryPi\model\best.pt")
 
+MODEL = YOLO(r'RaspberryPi\model\best.pt')
 
 def receive_frame(conn):
     # Receive 4-byte length header
@@ -37,43 +37,54 @@ def receive_frame(conn):
     return frame
 
 def start_server():
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((HOST, PORT))
-        s.listen(1)
-        print(f"[SERVER] Listening on port {PORT}...")
-        conn, addr = s.accept()
-        print("[SERVER] Connected by", addr)
+    
+    while True:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind((HOST, PORT))
+                s.listen(1)
+                print(f"[SERVER] Listening on port {PORT}...")
+                conn, addr = s.accept()
+                print("[SERVER] Connected by", addr)
 
-        with conn:
-            direction = None
-            while True:
-                frame = receive_frame(conn)
-                if frame is None:
-                    break
+                with conn:
+                    while True:
+                        frame = receive_frame(conn)
+                        if frame is None:
+                            break
+                        #frame = cv2.resize(frame, (448,448))
+                        # Get bboxes from model
+                        boxes= MODEL.predict(source=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), iou=.3)[0].boxes.xyxy.int().tolist()
 
-                # Display the received frame
-                cv2.imshow("Live Feed", frame)
+                        if len(boxes) > 0:
+                            # Get colors from bins and sort bins from left to right
+                            colors = colordetect.get_box_colors(frame, boxes)
+                            colors,boxes = colordetect.sort_bins(colors,boxes)
+                            
+                            # ----Colored bin to track ("blue") is hardcoded right now, will be automatically determined in the future-----
+                            direction = direct.determine_direction(frame, colors, boxes, "blue", 40)
+                        
+                        # Comment this out if you dont need visualization
+                            for indx, box in enumerate(boxes):
+                                cv2.rectangle(frame, box[:2], box[2:], (0,0,255), 2)
+                                frame = cv2.putText(frame, colors[indx], (box[0],box[1]), cv2.FONT_HERSHEY_SIMPLEX, .5, (0,0,0), 1)
+                        
 
-                # Get bboxes from model
-                boxes= MODEL.predict(source=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), iou=.3)[0].boxes.xyxy.int().tolist()
-
-                if len(boxes) > 0:
-                    # Get colors from bins and sort bins from left to right
-                    colors = colordetect.get_box_colors(frame, boxes)
-                    colors,boxes = colordetect.sort_bins(colors,boxes)
+                        # Display the received frame
+                        cv2.imshow("Live Feed", frame)
+                        if cv2.waitKey(1) == 27:  # Press 'ESC' to stop
+                            break
                     
-                    # ----Colored bin to track ("blue") is hardcoded right now, will be automatically determined in the future-----
-                    direction = direct.determine_direction(frame, colors, boxes, "blue", 40) + "\n"
-                
-                conn.sendall(direction.encode())
 
-        cv2.destroyAllWindows()
-        print("[SERVER] Connection closed.")
+                        # Send acknowledgment back to client
+                        conn.sendall(direction.encode())
+                cv2.destroyAllWindows()
+                print("[SERVER] Connection closed.")
+            except KeyboardInterrupt:
+                s.close()
+                exit()
+
 
 if __name__ == "__main__":
-    while True:
-        try:
-            start_server()
-        except ConnectionResetError:
-            print("Client Connection closed")
-
+    MODEL.predict(r'RaspberryPi\model\image.png')
+    start_server()
