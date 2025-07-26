@@ -11,7 +11,7 @@ import direct
 HOST = ''  # Listen on all interfaces
 PORT = 9999
 
-MODEL = YOLO(r'RaspberryPi\model\best.pt')
+MODEL = YOLO(r'RaspberryPi\server\best.pt')
 
 def receive_frame(conn):
     # Receive 4-byte length header
@@ -86,5 +86,5 @@ def start_server():
 
 
 if __name__ == "__main__":
-    MODEL.predict(r'RaspberryPi\model\image.png')
+    MODEL.predict(r'RaspberryPi\server\warmup_image.png')
     start_server()
