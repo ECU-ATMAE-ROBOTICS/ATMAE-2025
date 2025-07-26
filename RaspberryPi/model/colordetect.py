@@ -37,12 +37,12 @@ def detect_color(img):
 
     color_ranges = {
     'red': [
-        ((0, 100, 100), (13, 255, 255)),      # Lower red
-        ((160, 100, 100), (180, 255, 255))    # Upper red
+        ((0, 190, 50), (5, 255, 255)),      # Lower red
+        ((160, 190, 50), (179, 255, 255))    # Upper red
     ],
-    'green': [((35, 100, 30), (85, 255, 255))],
-    'blue':  [((90, 100, 30), (130, 255, 255))],
-    'yellow':[((20, 30, 30), (34, 255, 255))]
+    'green': [((35, 20, 5), (93, 150, 80))],
+    'blue':  [((100, 200, 15), (130, 255, 255))],
+    'yellow':[((13, 130, 70), (34, 255, 255))],
     }
 
     # Store pixel counts for each color
@@ -65,7 +65,7 @@ def detect_color(img):
     mask = color_pixel_counts[detected_color][1]
     result = cv2.bitwise_and(img, img, mask=mask)
 
-    #cv2.imwrite(f'/home/ecu/Desktop/ATMAE-2025/RaspberryPi/yolo_detections/object{random.randint(0,100)}.jpg', result)
+    cv2.imwrite(rf"C:\Users\lozan\OneDrive\Desktop\ATMAE-2025\ATMAE-2025\RaspberryPi\yolo_detections\{detected_color}\{random.randint(0,100)}.jpg", result)
     return detected_color
 
 def validate_box_colors(stored_color, detected_colors):
