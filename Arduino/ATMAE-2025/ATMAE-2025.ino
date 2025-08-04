@@ -141,6 +141,7 @@ void parseData(String data) {
     }
 
     else if (button_id == NEUTRAL_ID && axis_val == 1.0){
+      resetBot();
       Teleop = false;
       Auto = false;
     }
