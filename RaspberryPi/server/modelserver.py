@@ -48,13 +48,15 @@ def start_server():
                 print("[SERVER] Connected by", addr)
 
                 with conn:
+                    
                     while True:
                         frame = receive_frame(conn)
+                        direction = "None"
                         if frame is None:
                             break
                         #frame = cv2.resize(frame, (448,448))
                         # Get bboxes from model
-                        boxes= MODEL.predict(source=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), iou=.3)[0].boxes.xyxy.int().tolist()
+                        boxes= MODEL.predict(source=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), iou=.3, device="cuda")[0].boxes.xyxy.int().tolist()
 
                         if len(boxes) > 0:
                             # Get colors from bins and sort bins from left to right
@@ -62,12 +64,13 @@ def start_server():
                             colors,boxes = colordetect.sort_bins(colors,boxes)
                             
                             # ----Colored bin to track ("blue") is hardcoded right now, will be automatically determined in the future-----
-                            direction = direct.determine_direction(frame, colors, boxes, "blue", 40)
+                            direction = direct.determine_direction(frame, colors, boxes, colors[0], 40)
                         
                         # Comment this out if you dont need visualization
                             for indx, box in enumerate(boxes):
                                 cv2.rectangle(frame, box[:2], box[2:], (0,0,255), 2)
-                                frame = cv2.putText(frame, colors[indx], (box[0],box[1]), cv2.FONT_HERSHEY_SIMPLEX, .5, (0,0,0), 1)
+                            
+                            frame = cv2.putText(frame, direction[:-1], (20,60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
                         
 
                         # Display the received frame

@@ -27,6 +27,9 @@ thread_pipe = queue.Queue()
 
 
 def teleop(controller, arduino):
+
+    arduino.write("22:1\n".encode("utf-8"))
+    
     while True:
         # Detects and sends controller inputs
         instructions = controller.getControllerInput()
