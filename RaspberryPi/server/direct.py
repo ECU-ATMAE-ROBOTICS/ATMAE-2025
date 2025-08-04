@@ -41,15 +41,12 @@ def determine_direction(img, colors, boxes, reference,threshold):
 
     #Stop the bot if it's close enough and aligned
     if percent_covered > 40 and bin_center[1] < img_center[1]+60 and bin_center[1] > img_center[1]-60:
-        return "stop"
+        return "9:-1\n"
     
-    #Determine direction of bot
-    if bin_center[1] > img_center[1]+threshold:
-        return "right"
-    elif bin_center[1] < img_center[1]+threshold and bin_center[1] > img_center[1]-threshold:
-        return "forward"
+    #Siulate controller turn input based on how far from center bin is
     else:
-        return "left"
+        amount_to_turn = (bin_center[1]/img_center[1] -1) * .65
+        return f"5:{amount_to_turn:.2f}\n"
 
 
 
