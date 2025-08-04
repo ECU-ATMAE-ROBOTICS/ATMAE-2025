@@ -57,7 +57,7 @@ def teleop(controller, arduino):
                 
         time.sleep(0.02)
 
-def send_video():
+def send_video(arduino):
     cap = cv2.VideoCapture(0)
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -72,6 +72,7 @@ def send_video():
             stop_threads.set()
 
         s.settimeout(.5)
+        previous_msg = None
         while not stop_threads.is_set() and connected:
             ret, frame = cap.read()
             if not ret:
@@ -88,8 +89,11 @@ def send_video():
                 s.sendall(msg)
 
                 # Wait for acknowledgment
-                instruction = s.recv(10).decode()
-                print(instruction)
+                instruction = s.recv(1050).decode()
+                if instruction != previous_msg:
+                    print(instruction)
+                    arduino.write(instruction.encode('utf-8'))
+                    previous_msg = instruction
             except OSError as e:
                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Communication to server timed out")
                 stop_threads.set()
@@ -107,7 +111,7 @@ def serial_interface(arduino):
 
 
 def auto(controller, arduino):
-    model_thread = threading.Thread(target=send_video)
+    model_thread = threading.Thread(target=send_video,args=[arduino])
     stop_threads.clear()
     model_thread.start()
     
@@ -119,5 +123,6 @@ def auto(controller, arduino):
             if inputID == neutral_mode:
                 stop_threads.set()
                 model_thread.join()
-        
+
+        time.sleep(.2)
 
