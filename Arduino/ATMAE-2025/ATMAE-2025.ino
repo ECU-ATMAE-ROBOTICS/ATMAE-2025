@@ -22,9 +22,12 @@ double axis_val;
 //Value for determining robot speed
 double RightTrigger = 0;
 double LeftTrigger = 0;
+double LeftStick = 0;
 
 //Ratio to slow each motor for turning
-double turnValue = 0;
+double leftTurn = 0;
+double rightTurn = 0;
+double drive = 0;
 
 //PWM values passed to the motors
 double LMotor = 1500;
@@ -80,8 +83,23 @@ void loop() {
   
 
   if (Teleop){
-    LMotor = 1500 - 500 * (RightTrigger - LeftTrigger) + 500 * turnValue;
-    RMotor = 1500 + 500 * (RightTrigger - LeftTrigger) + 500 * turnValue;
+    drive = RightTrigger - LeftTrigger;
+
+    //Drive and turn
+    if(abs(drive) > 0){
+      RMotor = 1500 + 500 * drive * (1 - rightTurn);
+      LMotor = 1500 - 500 * drive * (1 - leftTurn);
+    }
+    //Turn in place
+    else if (rightTurn > 0 || leftTurn > 0){
+      RMotor = 1500 + 500 * LeftStick;
+      LMotor = 1500 + 500 * LeftStick;
+    }
+
+    else {
+      RMotor = 1500;
+      LMotor = 1500;
+    }
 
     leftservo.writeMicroseconds(LMotor);
     rightservo.writeMicroseconds(RMotor);
@@ -99,7 +117,10 @@ void resetBot(){
   //Reset Teleop control variables
   RightTrigger = 0;
   LeftTrigger = 0;
-  turnValue = 0;
+  LeftStick = 0;
+  drive = 0;
+  leftTurn = 0;
+  rightTurn = 0;
   LMotor = 1500;
   RMotor = 1500;
 
@@ -137,7 +158,23 @@ void parseData(String data) {
 
     //Turning (Left-Stick X axis)
     else if (button_id == LEFT_STICK_ID) {
-      turnValue = axis_val;
+      LeftStick = axis_val;
+
+      //Turn right
+      if (axis_val > 0){
+        rightTurn = axis_val;
+        leftTurn = 0;
+      }
+      //Turn left
+      else if (axis_val < 0){
+        rightTurn = 0;
+        leftTurn = -axis_val;
+      }
+      //Full Stop
+      else{
+        rightTurn = 0;
+        leftTurn = 0;
+      }
     }
 
     else if (button_id == NEUTRAL_ID && axis_val == 1.0){

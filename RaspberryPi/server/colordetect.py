@@ -4,9 +4,19 @@ import random
 
 def sort_bins(colors, boxes):
     """
-    YOLO box output isnt from left to right
-    this functions sorts the output from left to right
+    Sort YOLO-detected bounding boxes and their associated colors
+    from left to right (based on the x-coordinate of the box).
+
+    Args:
+        colors (list): List of color labels associated with each box.
+        boxes (list): List of bounding box coordinates in the format [x0, y0, x1, y1].
+
+    Returns:
+        tuple: 
+            - final_colors (list): Sorted list of colors from left to right.
+            - final_boxes (list): Sorted list of bounding boxes from left to right.
     """
+       
     final_colors = colors[:]
     final_boxes = boxes[:]
 
@@ -30,7 +40,13 @@ def sort_bins(colors, boxes):
 
 def detect_color(img):
     """
-    Isolates the tape on the box and returns the color of the tape
+    Detect the dominant tape color in an image using HSV color thresholds.
+
+    Args:
+        img (numpy.ndarray): Input BGR image
+
+    Returns:
+        str: The detected color label ('red', 'green', 'blue', 'yellow').
     """
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     
@@ -68,19 +84,21 @@ def detect_color(img):
     cv2.imwrite(rf"C:\Users\lozan\OneDrive\Desktop\ATMAE-2025\ATMAE-2025\RaspberryPi\yolo_detections\{detected_color}\{random.randint(0,100)}.jpg", result)
     return detected_color
 
-def validate_box_colors(stored_color, detected_colors):
-    valid_colors = ['red', 'green', 'blue', 'yellow']
-
-    #Remove used colors
-    valid_colors.remove(stored_color)
-
-
 
 
 def get_box_colors(img,boxes):
     """
-    Crops the image to the bbox and
-    retrieves the tape color from the box
+    Extracts bounding box regions from an image and determines the tape color
+    inside each bounding box using detect_color().
+
+    Args:
+        img (numpy.ndarray): The original BGR image containing objects.
+        boxes (list): List of bounding box coordinates in the format [x0, y0, x1, y1].
+
+    Returns:
+        list | None: 
+            - List of detected colors for each bounding box.
+            - None if no colors were detected.
     """
     colors = []
     

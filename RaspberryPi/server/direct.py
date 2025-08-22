@@ -2,12 +2,22 @@ import math
 
 def determine_direction(img, colors, boxes, reference,threshold):
     """
-    __params__
-        img: image from camera
-        colors - list: detected tape colors
-        boxes - list: boxes from YOLO model
-        reference - str: box color to target
-        threshold - int: size of the middle section of image
+    Determine the direction a robot should move to align with a target bin
+    based on YOLO-detected bounding boxes and tape colors.
+
+    Args:
+        img (numpy.ndarray): Image from the camera (BGR format).
+        colors (list): List of detected tape colors associated with bounding boxes.
+        boxes (list): List of bounding box coordinates in the format [x0, y0, x1, y1].
+        reference (str): The target color of the box to align with.
+        threshold (int): Threshold value representing the tolerance around the 
+            middle section of the image for alignment.
+
+    Returns:
+        str: A movement command string formatted as:
+            - "9:-1\n" if the bot is close enough and aligned with the target bin.
+            - "5:{amount_to_turn}\n" if the bot needs to turn, where `amount_to_turn`
+              is a float between -1.0 and 1.0.
     """
     #Get center of image
     img_height, img_width = img.shape[:2]
