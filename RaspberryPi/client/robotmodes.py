@@ -7,7 +7,7 @@ from datetime import datetime
 import threading
 import queue
 
-SERVER_IP = '192.168.4.164'  # Change to the IP of the server
+SERVER_IP = '192.168.4.32'  # Change to the IP of the server
 PORT = 9999
 
 logger = logging.getLogger(__name__)
@@ -73,8 +73,11 @@ def send_video(arduino):
         except socket.timeout as e:
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Connection attempt timed out")
             stop_threads.set()
+        except OSError as e:
+            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Failed to connect to server")
+            stop_threads.set()
 
-        s.settimeout(.5)
+        
         previous_msg = None
         while not stop_threads.is_set() and connected:
             ret, frame = cap.read()
@@ -92,11 +95,14 @@ def send_video(arduino):
                 s.sendall(msg)
 
                 # Wait for acknowledgment
-                instruction = s.recv(1050).decode()
-                if instruction != previous_msg:
+                instructions = s.recv(1050).decode().split('|')
+
+                for instruction in instructions:
                     print(instruction)
-                    arduino.write(instruction.encode('utf-8'))
-                    previous_msg = instruction
+
+                    if previous_msg != instruction:
+                        arduino.write(instruction.encode('utf-8'))
+                        previous_msg = instruction
             except OSError as e:
                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Communication to server timed out")
                 stop_threads.set()
@@ -126,6 +132,8 @@ def auto(controller, arduino):
             if inputID == neutral_mode:
                 stop_threads.set()
                 model_thread.join()
+                #time.sleep(.5)
+                arduino.write(instruction.encode('utf-8'))
 
         time.sleep(.2)
 
