@@ -28,6 +28,24 @@ thread_pipe = queue.Queue()
 
 def teleop(controller, arduino):
 
+    """
+    Run the robot in teleoperation mode using controller inputs.
+
+    Continuously reads inputs from the controller and sends appropriate
+    serial commands to the Arduino. Prevents redundant values from being sent
+    to avoid clogging the serial communication.
+
+    Args:
+        controller (object): A controller object providing methods:
+            - getControllerInput()
+            - getInputID(input)
+            - getInputValue(input)
+        arduino (serial.Serial): Serial connection object to the Arduino.
+
+    Returns:
+        None
+    """
+
     arduino.write("22:1\n".encode("utf-8"))
     
     while True:
@@ -61,6 +79,19 @@ def teleop(controller, arduino):
         time.sleep(0.02)
 
 def send_video(arduino):
+
+    """
+    Capture video frames from the camera and send them to the server
+    over a TCP connection. Receives and forwards control instructions
+    from the server to the Arduino.
+
+    Args:
+        arduino (serial.Serial): Serial connection object to the Arduino.
+
+    Returns:
+        None
+    """
+
     cap = cv2.VideoCapture(0)
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -120,6 +151,24 @@ def serial_interface(arduino):
 
 
 def auto(controller, arduino):
+
+    """
+    Run the robot in autonomous mode.
+
+    Starts a video-sending thread that communicates with the server
+    to receive movement instructions. Continues until the neutral
+    mode button is pressed on the controller, which stops the thread.
+
+    Args:
+        controller (object): A controller object providing methods:
+            - getControllerInput()
+            - getInputID(input)
+        arduino (serial.Serial): Serial connection object to the Arduino.
+
+    Returns:
+        None
+    """
+    
     model_thread = threading.Thread(target=send_video,args=[arduino])
     stop_threads.clear()
     model_thread.start()
