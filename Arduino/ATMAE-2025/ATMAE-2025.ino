@@ -24,7 +24,7 @@ double RightTrigger = 0;
 double LeftTrigger = 0;
 double LeftStick = 0;
 
-//Ratio to slow each motor for turning
+//Ratio to slow each motor for turning while driving
 double leftTurn = 0;
 double rightTurn = 0;
 double drive = 0;
@@ -33,7 +33,6 @@ double drive = 0;
 double LMotor = 1500;
 double RMotor = 1500;
 
-bool Teleop = false;
 bool Auto = false;
 
 Servo leftservo;
@@ -80,35 +79,30 @@ void loop() {
     }
   }
 
-  
-
-  if (Teleop){
     drive = RightTrigger - LeftTrigger;
 
-    //Drive and turn
+    //1500 is the stop value for both motors
+    RMotor = 1500;
+    LMotor = 1500;
+
+    //Drive and Turn
     if(abs(drive) > 0){
       RMotor = 1500 + 500 * drive * (1 - rightTurn);
-      LMotor = 1500 - 500 * drive * (1 - leftTurn);
+      LMotor = 1500 - 500 * drive * (1 - leftTurn);//Motor is inverted
     }
     //Turn in place
-    else if (rightTurn > 0 || leftTurn > 0){
+    else if (button_id == 5){
       RMotor = 1500 + 500 * LeftStick;
       LMotor = 1500 + 500 * LeftStick;
     }
 
-    else {
-      RMotor = 1500;
-      LMotor = 1500;
-    }
-
+    //Set motor speed
     leftservo.writeMicroseconds(LMotor);
     rightservo.writeMicroseconds(RMotor);
-  }
-  else if (Auto){
+
+  if (Auto){
     1;
   }
-
-
 }
 
 //Resets the bot when in neutral mode
@@ -121,9 +115,10 @@ void resetBot(){
   drive = 0;
   leftTurn = 0;
   rightTurn = 0;
+
+  //Stop motors
   LMotor = 1500;
   RMotor = 1500;
-
   leftservo.writeMicroseconds(LMotor);
   rightservo.writeMicroseconds(RMotor);
 }
@@ -177,22 +172,16 @@ void parseData(String data) {
       }
     }
 
-    else if (button_id == NEUTRAL_ID && axis_val == 1.0){
+    else if (button_id == NEUTRAL_ID){
       resetBot();
-      Teleop = false;
       Auto = false;
     }
 
-    else if (button_id == AUTO_ID && axis_val == 1.0){
+    else if (button_id == AUTO_ID){
+      resetBot();
       Auto = true;
-      Teleop = false; // just in case
+      
     }
-
-    else if (button_id == TELEOP_ID && axis_val == 1.0){
-      Teleop = true;
-      Auto = false; // just in case
-    }
-
 
   } else {
     // Error handling if data doesn't contain ':'
