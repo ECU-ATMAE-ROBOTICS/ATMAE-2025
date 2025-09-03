@@ -79,7 +79,7 @@ def start_server():
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
                 s.bind((HOST, PORT))
-                s.listen(1)
+                s.listen(100)
                 print(f"[SERVER] Listening on port {PORT}...")
                 conn, addr = s.accept()
                 print("[SERVER] Connected by", addr)
@@ -88,13 +88,13 @@ def start_server():
                     
                     while True:
                         frame = receive_frame(conn)
-                        messages = ""
+                        messages = "None\n"
 
                         if frame is None:
                             break
                         #frame = cv2.resize(frame, (448,448))
                         # Get bboxes from model
-                        boxes= MODEL.predict(source=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), iou=.3, device="cuda", verbose=False)[0].boxes.xyxy.int().tolist()
+                        boxes= MODEL.predict(source=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), iou=.3, verbose=False)[0].boxes.xyxy.int().tolist()
 
                         if len(boxes) > 0:
                             # Get colors from bins and sort bins from left to right
