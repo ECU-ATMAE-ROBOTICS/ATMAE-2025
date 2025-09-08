@@ -38,6 +38,19 @@ bool Auto = false;
 Servo leftservo;
 Servo rightservo;
 
+
+Servo colorSort;
+//placeholder values
+const int  redPos=30;
+const int  yellowPos=60;
+const int  greenPos=120;
+const int  bluePos=150;
+const int centerPos=90;
+
+
+
+
+
 /*
 Parses instructions from the PI
 to determine robot movement
@@ -54,6 +67,7 @@ void setup() {
   //Initialize the servos
   leftservo.attach(2);
   rightservo.attach(3);
+  colorSort.attach(4);
 }
 
 
@@ -185,6 +199,56 @@ void parseData(String data) {
 
   } else {
     // Error handling if data doesn't contain ':'
-    Serial.println("Err");
+    if(data=="toRed")
+    {
+        toRed();
+    }
+    else if(data=="toBlue")
+    {
+        toBlue();
+    }
+    else if(data=="toGreen")
+    {
+        toGreen();
+    }
+    else if(data=="toYellow")
+    {
+        toYellow();
+    }
+    else if(data="toCenter")
+    {
+        toCenter();
+    }
+    else
+    {
+            Serial.println("Err");
+
+    }
+  
   }
+}
+
+
+void toRed()
+{
+  colorSort.write(redPos);
+}
+
+void toGreen()
+{
+  colorSort.write(greenPos);
+}
+
+void toBlue()
+{
+  colorSort.write(bluePos);
+}
+
+void toYellow()
+{
+  colorSort.write(yellowPos);
+}
+void toCenter()
+{
+  colorSort.write(centerPos);
 }
