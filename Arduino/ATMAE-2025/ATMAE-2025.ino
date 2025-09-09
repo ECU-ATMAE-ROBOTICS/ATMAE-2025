@@ -41,10 +41,10 @@ Servo rightservo;
 
 Servo colorSort;
 //placeholder values
-const int  redPos=30;
-const int  yellowPos=60;
-const int  greenPos=120;
-const int  bluePos=150;
+int  redPos=30;
+int  yellowPos=60;
+int  greenPos=120;
+int  bluePos=150;
 const int centerPos=90;
 
 
@@ -199,7 +199,36 @@ void parseData(String data) {
 
   } else {
     // Error handling if data doesn't contain ':'
-    if(data=="toRed")
+    if(data=="sepBlue")
+    {
+        bluePos=150;
+        redPos=30;
+        yellowPos=60;
+        greenPos=120;
+    }
+    else  if(data=="sepRed")
+    {
+        redPos=150;
+        bluePos=30;
+        yellowPos=60;
+        greenPos=120;
+    }
+    else if(data=="sepGreen")
+    {
+        greenPos=150;
+        bluePos=30;
+        yellowPos=60;
+        redPos=120;
+    }
+    else if(data=="sepGreen")
+    {
+        yellowPos=150;
+        bluePos=30;
+        greenPos=60;
+        redPos=120;
+    }
+
+    else if(data=="toRed")
     {
         toRed();
     }
