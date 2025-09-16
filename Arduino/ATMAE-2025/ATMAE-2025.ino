@@ -13,6 +13,9 @@ const int NEUTRAL_ID = 23;
 const int LEFT_TRIGGER_ID = 9;
 const int RIGHT_TRIGGER_ID = 10;
 const int LEFT_STICK_ID = 5;
+const int Right_STICK_ID=8;
+const int RDPAD=2;
+const int LDPAD=4;
 
 //Instruction ID and Value received from the Pi
 String receivedData = "";
@@ -46,7 +49,10 @@ int  yellowPos=60;
 int  greenPos=120;
 int  bluePos=150;
 const int centerPos=90;
-
+const int sepPos=150;
+const int Pos1=30;
+const int Pos2=60;
+const int Pos3=90;
 
 
 
@@ -201,31 +207,31 @@ void parseData(String data) {
     // Error handling if data doesn't contain ':'
     if(data=="sepBlue")
     {
-        bluePos=150;
-        redPos=30;
-        yellowPos=60;
-        greenPos=120;
+        bluePos=sepPos;
+        redPos=Pos1;
+        yellowPos=Pos2;
+        greenPos=Pos3;
     }
     else  if(data=="sepRed")
     {
-        redPos=150;
-        bluePos=30;
-        yellowPos=60;
-        greenPos=120;
+        redPos=sepPos;
+        bluePos=Pos1;
+        yellowPos=Pos2;
+        greenPos=Pos3;
     }
     else if(data=="sepGreen")
     {
-        greenPos=150;
-        bluePos=30;
-        yellowPos=60;
-        redPos=120;
+        greenPos=sepPos;
+        bluePos=Pos1;
+        yellowPos=Pos2;
+        redPos=Pos3;
     }
     else if(data=="sepGreen")
     {
-        yellowPos=150;
-        bluePos=30;
-        greenPos=60;
-        redPos=120;
+        yellowPos=sepPos;
+        bluePos=Pos1;
+        greenPos=Pos2;
+        redPos=Pos3;
     }
 
     else if(data=="toRed")
