@@ -6,6 +6,8 @@ import struct
 from datetime import datetime
 import threading
 import queue
+import internalsort
+from picamera2 import Picamera2
 
 SERVER_IP = '192.168.4.32'  # Change to the IP of the server
 PORT = 9999
@@ -186,3 +188,45 @@ def auto(controller, arduino):
 
         time.sleep(.2)
 
+
+
+def internal_sort_mode(arduino):
+
+    """
+    Run the robot in internal sorting mode.
+
+    Continuously captures frames from the camera, processes them to
+    detect ball colors, and sends corresponding servo commands to
+    the Arduino. Stops after sorting 12 balls.
+
+    Args:
+        arduino (serial.Serial): Serial connection object to the Arduino.
+
+    Returns:
+        None
+    """
+
+    #cap = cv2.VideoCapture(1)
+    capture = Picamera2()
+    capture.start()
+
+    
+    while True:
+        img = capture.capture_array()
+        fragitme = cv2.resize(img, (320, 240))
+        if not img.any():
+            break
+
+        color = internalsort.internal_sort(frame, sep_color=None)
+
+        if color is not None:
+            arduino.write(f"{color}:1\n".encode("utf-8"))
+            print(f"Sent command: {color}")
+
+        if color == 4:  # Assuming 4 indicates completion of sorting 12 balls
+            break
+
+
+        time.sleep(0.5)  # Adjust delay as needed
+
+    capture.stop()
