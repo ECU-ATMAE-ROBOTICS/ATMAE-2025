@@ -213,7 +213,7 @@ def internal_sort_mode(arduino):
     
     while True:
         img = capture.capture_array()
-        fragitme = cv2.resize(img, (320, 240))
+        frame = cv2.resize(img, (320, 240))
         if not img.any():
             break
 
