@@ -1,10 +1,10 @@
-import colordetect
+import RaspberryPi.client.colordetect as colordetect
 import cv2
 
 ball_count = 0
 
 
-def internal_sort(frame, sep_color):
+def internal_sort(frame):
         """
         Detect color of ball in the frame and return servo command.
 

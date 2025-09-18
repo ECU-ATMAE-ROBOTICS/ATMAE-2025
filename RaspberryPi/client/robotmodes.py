@@ -6,7 +6,8 @@ import struct
 from datetime import datetime
 import threading
 import queue
-import RaspberryPi.server.internalsort as internalsort 
+import internalsort
+from picamera2 import Picamera2
 
 SERVER_IP = '192.168.4.32'  # Change to the IP of the server
 PORT = 9999
@@ -205,11 +206,15 @@ def internal_sort_mode(arduino):
         None
     """
 
-    cap = cv2.VideoCapture(1)
+    #cap = cv2.VideoCapture(1)
+    capture = Picamera2()
+    capture.start()
+
     
     while True:
-        ret, frame = cap.read()
-        if not ret:
+        img = capture.capture_array()
+        frame = cv2.resize(img, (320, 240))
+        if not img.any():
             break
 
         color = internalsort.internal_sort(frame, sep_color=None)
@@ -220,11 +225,8 @@ def internal_sort_mode(arduino):
 
         if color == 4:  # Assuming 4 indicates completion of sorting 12 balls
             break
-        
-        if color == 5:  # Jiggle command to dislodge stuck balls
-            pass # I dont really know what this would look like
 
 
         time.sleep(0.5)  # Adjust delay as needed
 
-    cap.release()
+    capture.stop()
