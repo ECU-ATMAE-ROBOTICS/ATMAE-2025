@@ -213,11 +213,12 @@ def internal_sort_mode(arduino):
     
     while True:
         img = capture.capture_array()
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         frame = cv2.resize(img, (320, 240))
         if not img.any():
             break
 
-        color = internalsort.internal_sort(frame, sep_color=None)
+        color = internalsort.internal_sort(frame)
 
         if color is not None:
             arduino.write(f"{color}:1\n".encode("utf-8"))
