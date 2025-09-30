@@ -81,7 +81,7 @@ def detect_color(img):
     mask = color_pixel_counts[detected_color][1]
     result = cv2.bitwise_and(img, img, mask=mask)
 
-    cv2.imwrite(rf"C:\Users\lozan\OneDrive\Desktop\ATMAE-2025\ATMAE-2025\RaspberryPi\yolo_detections\{detected_color}\{random.randint(0,100)}.jpg", result)
+    #cv2.imwrite(rf"C:\Users\lozan\OneDrive\Desktop\ATMAE-2025\ATMAE-2025\RaspberryPi\yolo_detections\{detected_color}\{random.randint(0,100)}.jpg", result)
     return detected_color
 
 
