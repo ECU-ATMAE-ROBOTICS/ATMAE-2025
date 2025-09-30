@@ -43,7 +43,13 @@ Servo leftservo;
 Servo rightservo;
 
 
+Servo clamp;
+const int clampPin=10;
+const int clampOpenPos=90;
+const int clampClosePos=10;
+
 Servo colorSort;
+
 //placeholder values for color pos changed later
 int  redPos=30;
 int  yellowPos=60;
@@ -86,6 +92,7 @@ void setup() {
   colorSort.attach(4);
   stepper.setMaxSpeed(200.0);
   stepper.setAcceleration(100.0);
+  clamp.attach(clampPin);
 
 }
 
@@ -191,7 +198,14 @@ void toCenter()
 {
   colorSort.write(centerPos);
 }
-
+void openClamp()
+{
+  clamp.write(clampOpenPos);
+}
+void closeClamp()
+{
+  clamp.write(clampClosePos);
+}
 
 
 
@@ -306,6 +320,14 @@ void toCenter()
       else if(data="toCenter")
       {
           toCenter();
+      }
+      else if(data="closeClamp")
+      {
+          closeClamp();
+      }
+      else if(data="openClamp")
+      {
+          openClamp();
       }
       else
       {
