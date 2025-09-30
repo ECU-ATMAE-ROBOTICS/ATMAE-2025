@@ -129,7 +129,15 @@ def send_video(arduino):
 
                 # Wait for acknowledgment
                 instructions = s.recv(1050).decode().split('|')
+                if f"9:-1\n" in instructions:
+                    internal_sort_mode(arduino)
+                else:
+                    for instruction in instructions:
+                        print(instruction)
 
+                        if previous_msg != instruction:
+                            arduino.write(instruction.encode('utf-8'))
+                            previous_msg = instruction
                 for instruction in instructions:
                     print(instruction)
 
@@ -213,12 +221,11 @@ def internal_sort_mode(arduino):
     
     while True:
         img = capture.capture_array()
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        frame = cv2.resize(img, (320, 320))
+        fragitme = cv2.resize(img, (320, 240))
         if not img.any():
             break
 
-        color = internalsort.internal_sort(frame)
+        color = internalsort.internal_sort(frame, sep_color=None)
 
         if color is not None:
             arduino.write(f"{color}:1\n".encode("utf-8"))
