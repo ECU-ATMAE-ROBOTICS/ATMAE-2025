@@ -4,3 +4,4 @@ venv
 __pycache__/
 yolo_detections
 logs
+.*
