@@ -213,7 +213,7 @@ def auto(controller, arduino):
 
     
     
-    while not stop_video_thread.is_set():
+    while not stop_threads.is_set():
         if robot_is_close.is_set() and not sorting_started.is_set():
             internal_sort.start()
         for instruction in controller.getControllerInput():

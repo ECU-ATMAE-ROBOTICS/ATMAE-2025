@@ -11,6 +11,8 @@ import direct
 HOST = ''  # Listen on all interfaces
 PORT = 9999
 
+BOX_MODEL = r'RaspberryPi\server\best.pt'
+CARTON_MODEL = r'tbd'
 MODEL = YOLO(r'RaspberryPi\server\best.pt')
 
 def receive_frame(conn):
@@ -103,6 +105,10 @@ def start_server():
                             
                             direction = direct.determine_direction(frame, boxes)
                             throttle = direct.determine_throttle(frame, boxes)
+
+                            if throttle == "9:-1\n":
+                                #Switch models
+                                MODEL = YOLO(BOX_MODEL)
 
                             messages = f"{direction}|{throttle}"
                         

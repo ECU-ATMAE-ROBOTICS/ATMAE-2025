@@ -47,8 +47,10 @@ def determine_throttle(img, boxes):
     print(percent_covered)
 
     if percent_covered > 23:
+        #Stop Signal
         return f"9:-1\n"
     else:
+        #Forward Signal
         return f"9:-.6\n"
 
 

@@ -9,7 +9,7 @@ import os
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
-log_path = "/home/ubuntu/Desktop/ATMAE-2025/RaspberryPi/client/logs" 
+log_path = "/home/ecu/Desktop/ATMAE-2025/RaspberryPi/client/logs" 
 
 try:
         if __name__ == "__main__":
