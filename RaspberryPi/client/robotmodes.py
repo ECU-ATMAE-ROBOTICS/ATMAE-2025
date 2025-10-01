@@ -111,10 +111,10 @@ def send_video(arduino):
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Connected to server.")
         except socket.timeout as e:
             logger.error(f"|{datetime.now().strftime('%H:%M:%S')}| Connection attempt timed out")
-            stop_threads.set()
+            stop_video_thread.set()
         except OSError as e:
             logger.error(f"|{datetime.now().strftime('%H:%M:%S')}| Failed to connect to server")
-            stop_threads.set()
+            stop_video_thread.set()
 
         
         previous_msg = None
@@ -268,7 +268,7 @@ def internal_sort_mode(arduino):
         if not img.any():
             break
 
-        color = colordetect.detect_color(frame)
+        color = internalsort.internal_sort(img)
         logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| color detected: {color}")
 
         if color != "black":
