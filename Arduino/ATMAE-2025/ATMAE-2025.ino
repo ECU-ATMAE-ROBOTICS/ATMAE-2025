@@ -42,7 +42,7 @@ bool Auto = false;
 Servo leftservo;
 Servo rightservo;
 
-
+//clamp code
 Servo clamp;
 const int clampPin=10;
 const int clampOpenPos=90;
@@ -69,6 +69,13 @@ const int StepperFourPin=9;
 AccelStepper stepper(AccelStepper::FULL4WIRE, StepperOnePin, StepperTwoPin, StepperThreePin, StepperFourPin);
 const int maxStepperPos=100;
 const int minStepperPos=10;
+const int upAmount=100;
+const int downAmount=-100;
+//Servos for open close 
+Servo topSorter;
+Servo bottomSorter;
+const int topSorterPin=12;
+const int bottomSorterPin=13;
 double RightStick = 0;
 
 
@@ -86,6 +93,9 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);
 
+
+
+
   //Initialize the servos
   leftservo.attach(2);
   rightservo.attach(3);
@@ -93,9 +103,26 @@ void setup() {
   stepper.setMaxSpeed(200.0);
   stepper.setAcceleration(100.0);
   clamp.attach(clampPin);
+  topSorter.attach(topSorterPin);
+  bottomSorter.attach(bottomSorterPin);
 
 }
+void stepperMoveDown()
+{
+      // stepper.moveTo(minStepperPos);
+      stepper.moveTo(downAmount);
+      stepper.run();
 
+
+}
+void stepperMoveUp()
+{
+  stepper.moveTo(upAmount);
+
+  // stepper.moveTo(maxStepperPos);
+  stepper.run();
+
+}
 
 /*
 ____    ____  ______    __   _______      __        ______     ______   .______   
@@ -162,19 +189,7 @@ void resetBot(){
   leftservo.writeMicroseconds(LMotor);
   rightservo.writeMicroseconds(RMotor);
 }
-void stepperMoveDown()
-{
-      stepper.moveTo(minStepperPos);
-      stepper.run();
 
-
-}
-void stepperMoveUp()
-{
-  stepper.moveTo(maxStepperPos);
-  stepper.run();
-
-}
 void toRed()
 {
   colorSort.write(redPos);
@@ -270,7 +285,25 @@ void closeClamp()
             stepperMoveUp();
         }
 
-    } else {
+    
+    } 
+    else if(button_id==LDPAD)
+    {
+      if(axis_val==1)
+      {
+        openClamp();
+      }
+    }
+    else if(button_id==RDPAD)
+    {
+      if(axis_val==1)
+      {
+        closeClamp();
+      }
+    }
+    
+    
+    else {
       // Error handling if data doesn't contain ':'
       if(data=="sepBlue")
       {
@@ -328,6 +361,14 @@ void closeClamp()
       else if(data="openClamp")
       {
           openClamp();
+      }
+      else if(data="steppUP")
+      {
+          stepperMoveUp();
+      }
+      else if(data="steppDown")
+      {
+          stepperMoveDown();
       }
       else
       {
