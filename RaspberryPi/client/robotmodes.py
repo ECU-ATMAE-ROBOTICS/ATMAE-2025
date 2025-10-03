@@ -6,7 +6,7 @@ import struct
 from datetime import datetime
 import threading
 import queue
-import internalsort
+import colordetect
 from picamera2 import Picamera2
 from collections import Counter
 
@@ -268,7 +268,7 @@ def internal_sort_mode(arduino):
         if not img.any():
             break
 
-        color = internalsort.internal_sort(img)
+        color = colordetect.detect_color(img)
         logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| color detected: {color}")
 
         if color != "black":
