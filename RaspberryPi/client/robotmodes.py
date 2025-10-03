@@ -143,31 +143,34 @@ def send_video(arduino):
                     print(instruction)
 
                     if previous_msg != instruction:
-                        previous_msg = instruction
+                        previous_msg = instructions
                         arduino.write(instruction.encode('utf-8'))
                         #Pause thread until sorting is finished
-                        if instruction == "9:-1\n":
-
+                        if "9:-1" in instruction and "9:-1" not in previous_msg:
                             robot_is_close.set()
                             time.sleep(.1)
                             
                             #Is the bot in front of bins?
-                            if bin_mode.is_set():
-                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Robot is close to bins")
+                            if bin_mode.is_set() and not sorting_started.is_set():
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Robot is close to bins\nExiting video thread")
                                 stop_video_thread.set()
                             else:
 
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Robot is close to cartons")
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| send_video() is waiting for sorting to finish")
                                 #Wait for sorting to finish
+                                robot_is_close.clear()
+                                cap.release()
                                 while sorting_started.is_set():
-                                    robot_is_close.clear()
-                                    time.sleep(1)
+                                    time.sleep(4)
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| send_video() stopped waiting")
+                                time.sleep(1)
+                                cap = cv2.VideoCapture(0)
+
             except OSError as e:
                 logger.error(f"|{datetime.now().strftime('%H:%M:%S')}| Communication to server timed out")
                 stop_video_thread.set()
 
-        cap.release()
 
 def serial_interface(arduino):
     while True:
@@ -216,6 +219,7 @@ def auto(controller, arduino):
     while not stop_video_thread.is_set():
         if robot_is_close.is_set() and not sorting_started.is_set():
             internal_sort.start()
+            internal_sort.join()
         for instruction in controller.getControllerInput():
             inputID = int(controller.getInputID(instruction))
             
@@ -223,6 +227,7 @@ def auto(controller, arduino):
             if inputID == neutral_mode:
                 stop_video_thread.set()
                 model_thread.join()
+                internal_sort.join()
                 #time.sleep(.5)
                 arduino.write(instruction.encode('utf-8'))
 
@@ -249,7 +254,7 @@ def internal_sort_mode(arduino):
     sorting_started.set()
     
     logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| internal_sort_mode() thread started")
-    capture = Picamera2()
+    capture = Picamera2(0)
     capture.start()
     ball_count = Counter({"red":0, "green":0, "blue":0, "yellow":0})
     instruction = None
@@ -261,24 +266,30 @@ def internal_sort_mode(arduino):
               "green":"toGreen",
               "yellow":"toYellow"
             }
-
-    
     while True:
         img = capture.capture_array()
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         if not img.any():
             break
 
         color = colordetect.detect_color(img)
-        logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| color detected: {color}")
-
+        
         if color != "black":
-            instruction = color_instruction[color]
-            arduino.write(instruction.encode("utf-8"))
-            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| instruction sent to arduino: {instruction}")
-            ball_count[color]+=1
+           instruction = color_instruction[color]
+           arduino.write(instruction.encode("utf-8"))
+           logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| instruction sent to arduino: {instruction}")
+           ball_count[color]+=1
+           print(color)
+           while color != "black":
+               img = capture.capture_array()
+               img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+               if not img.any():
+                   break
+               color = colordetect.detect_color(img)
+           time.sleep(.1)         
         
 
-        if ball_count.sum() == 12:  # Assuming 4 indicates completion of sorting 12 balls
+        if ball_count.total() == 1:  # Assuming 4 indicates completion of sorting 12 balls
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| ball count summary: {ball_count}")
             break
 
@@ -286,6 +297,7 @@ def internal_sort_mode(arduino):
         time.sleep(0.5)  # Adjust delay as needed
     
     capture.stop()
+    capture.close()
 
     sorting_started.clear()
     bin_mode.set()
