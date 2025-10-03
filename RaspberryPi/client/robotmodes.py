@@ -143,29 +143,34 @@ def send_video(arduino):
                     print(instruction)
 
                     if previous_msg != instruction:
-                        previous_msg = instruction
+                        previous_msg = instructions
                         arduino.write(instruction.encode('utf-8'))
                         #Pause thread until sorting is finished
-                        if instruction == "9:-1\n":
-
+                        if "9:-1" in instruction and "9:-1" not in previous_msg:
                             robot_is_close.set()
                             time.sleep(.1)
                             
                             #Is the bot in front of bins?
-                            if bin_mode.is_set():
-                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Robot is close to bins")
+                            if bin_mode.is_set() and not sorting_started.is_set():
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Robot is close to bins\nExiting video thread")
                                 stop_video_thread.set()
                             else:
 
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Robot is close to cartons")
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| send_video() is waiting for sorting to finish")
                                 #Wait for sorting to finish
+                                robot_is_close.clear()
+                                cap.release()
+                                while sorting_started.is_set():
+                                    time.sleep(4)
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| send_video() stopped waiting")
+                                time.sleep(1)
+                                cap = cv2.VideoCapture(0)
 
             except OSError as e:
                 logger.error(f"|{datetime.now().strftime('%H:%M:%S')}| Communication to server timed out")
                 stop_video_thread.set()
 
-        cap.release()
 
 def serial_interface(arduino):
     while True:
@@ -284,7 +289,7 @@ def internal_sort_mode(arduino):
            time.sleep(.1)         
         
 
-        if ball_count.total() == 2:  # Assuming 4 indicates completion of sorting 12 balls
+        if ball_count.total() == 1:  # Assuming 4 indicates completion of sorting 12 balls
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| ball count summary: {ball_count}")
             break
 
@@ -292,6 +297,7 @@ def internal_sort_mode(arduino):
         time.sleep(0.5)  # Adjust delay as needed
     
     capture.stop()
+    capture.close()
 
     sorting_started.clear()
     bin_mode.set()
