@@ -89,6 +89,7 @@ try:
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|In teleop mode")
                                 robotmodes.teleop(controller, arduino)
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|In neutral mode")
+                time.sleep(.1)
 
 
 except KeyboardInterrupt:

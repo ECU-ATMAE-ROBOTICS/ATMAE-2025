@@ -101,6 +101,7 @@ def send_video(arduino):
 
     cap = cv2.VideoCapture(0)
     logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| send_video() thread started")
+    internal_sort = threading.Thread(target=internal_sort_mode, args=[arduino])
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.settimeout(5)
@@ -146,12 +147,12 @@ def send_video(arduino):
                         previous_msg = instructions
                         arduino.write(instruction.encode('utf-8'))
                         #Pause thread until sorting is finished
-                        if "9:-1" in instruction and "9:-1" not in previous_msg:
+                        if "9:-1" in instruction:
                             robot_is_close.set()
                             time.sleep(.1)
                             
                             #Is the bot in front of bins?
-                            if bin_mode.is_set() and not sorting_started.is_set():
+                            if bin_mode.is_set():
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Robot is close to bins\nExiting video thread")
                                 stop_video_thread.set()
                             else:
@@ -161,8 +162,10 @@ def send_video(arduino):
                                 #Wait for sorting to finish
                                 robot_is_close.clear()
                                 cap.release()
-                                while sorting_started.is_set():
-                                    time.sleep(4)
+                                internal_sort.start()
+
+                                internal_sort.join()
+
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| send_video() stopped waiting")
                                 time.sleep(1)
                                 cap = cv2.VideoCapture(0)
@@ -170,6 +173,10 @@ def send_video(arduino):
             except OSError as e:
                 logger.error(f"|{datetime.now().strftime('%H:%M:%S')}| Communication to server timed out")
                 stop_video_thread.set()
+
+    cap.release()
+    internal_sort.join()
+
 
 
 def serial_interface(arduino):
@@ -202,7 +209,6 @@ def auto(controller, arduino):
     """
     #Init the thread
     model_thread = threading.Thread(target=send_video,args=[arduino])
-    internal_sort = threading.Thread(target=internal_sort_mode, args=[arduino])
     
     #Clear flags
     stop_video_thread.clear()
@@ -217,9 +223,6 @@ def auto(controller, arduino):
     
     
     while not stop_video_thread.is_set():
-        if robot_is_close.is_set() and not sorting_started.is_set():
-            internal_sort.start()
-            internal_sort.join()
         for instruction in controller.getControllerInput():
             inputID = int(controller.getInputID(instruction))
             
@@ -227,7 +230,6 @@ def auto(controller, arduino):
             if inputID == neutral_mode:
                 stop_video_thread.set()
                 model_thread.join()
-                internal_sort.join()
                 #time.sleep(.5)
                 arduino.write(instruction.encode('utf-8'))
 
@@ -289,7 +291,7 @@ def internal_sort_mode(arduino):
            time.sleep(.1)         
         
 
-        if ball_count.total() == 1:  # Assuming 4 indicates completion of sorting 12 balls
+        if ball_count.total() == 12:  # Assuming 4 indicates completion of sorting 12 balls
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| ball count summary: {ball_count}")
             break
 
