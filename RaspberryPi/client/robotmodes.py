@@ -258,6 +258,19 @@ def internal_sort_mode(arduino):
     logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| internal_sort_mode() thread started")
     capture = Picamera2(0)
     capture.start()
+
+    time.sleep(2)  # let auto exposure and white balance settle
+    metadata = capture.capture_metadata()
+
+    capture.set_controls({
+        "AeEnable": False,             # disable auto exposure
+        "AwbEnable": False,            # disable auto white balance
+        "ExposureTime": metadata["ExposureTime"],
+        "AnalogueGain": metadata["AnalogueGain"],
+        "ColourGains": metadata["ColourGains"]
+    })
+
+
     ball_count = Counter({"red":0, "green":0, "blue":0, "yellow":0})
     instruction = None
     color = None
@@ -281,6 +294,8 @@ def internal_sort_mode(arduino):
            arduino.write(instruction.encode("utf-8"))
            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| instruction sent to arduino: {instruction}")
            ball_count[color]+=1
+           
+           time.sleep(.2)  # Adjust delay as needed
            print(color)
            while color != "black":
                img = capture.capture_array()
@@ -288,15 +303,12 @@ def internal_sort_mode(arduino):
                if not img.any():
                    break
                color = colordetect.detect_color(img)
-           time.sleep(.1)         
-        
 
         if ball_count.total() == 12:  # Assuming 4 indicates completion of sorting 12 balls
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| ball count summary: {ball_count}")
             break
 
-
-        time.sleep(0.5)  # Adjust delay as needed
+        time.sleep(.1)
     
     capture.stop()
     capture.close()
