@@ -83,12 +83,14 @@ try:
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|In auto mode")
                                 robotmodes.auto(controller, arduino)
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|In neutral mode")
+                                break 
 
                             #Menu Button
                             case 22:
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|In teleop mode")
                                 robotmodes.teleop(controller, arduino)
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|In neutral mode")
+                                break
                 time.sleep(.1)
 
 

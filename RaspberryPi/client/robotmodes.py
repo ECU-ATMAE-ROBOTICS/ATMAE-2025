@@ -304,7 +304,7 @@ def internal_sort_mode(arduino):
                    break
                color = colordetect.detect_color(img)
 
-        if ball_count.total() == 12:  # Assuming 4 indicates completion of sorting 12 balls
+        if ball_count.total() == 1:  # Assuming 4 indicates completion of sorting 12 balls
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| ball count summary: {ball_count}")
             break
 
