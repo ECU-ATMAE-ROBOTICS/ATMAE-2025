@@ -159,15 +159,14 @@ def send_video(arduino):
 
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Robot is close to cartons")
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| send_video() is waiting for sorting to finish")
-                                #Wait for sorting to finish
                                 robot_is_close.clear()
                                 cap.release()
                                 internal_sort.start()
 
+                                #Wait for sorting to finish
                                 internal_sort.join()
 
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| send_video() stopped waiting")
-                                time.sleep(1)
                                 cap = cv2.VideoCapture(0)
 
             except OSError as e:
