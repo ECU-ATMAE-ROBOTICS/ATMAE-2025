@@ -21,6 +21,10 @@ neutral_mode = 23
 LSTICK_TURN = 5
 LEFT_TRIGGER = 10
 RIGHT_TRIGGER = 9
+RSTICK_YAXIS = 8
+RSTICK_XAXIS = 7
+
+valid_axes = [LSTICK_TURN, LEFT_TRIGGER, RIGHT_TRIGGER, RSTICK_YAXIS, RSTICK_XAXIS]
 
 #Keeps track of previous inputs sent by an ID to prevent serial clogging
 prevInstructions = {5:0.0, 9:0.0, 10:0.0}
@@ -67,7 +71,7 @@ def teleop(controller, arduino):
                 instructionValue = float(controller.getInputValue(instruction).strip())
                 
                 #Checks if the input is valid to send through serial
-                if instructionID == LSTICK_TURN or instructionID in [LEFT_TRIGGER,RIGHT_TRIGGER]:
+                if instructionID in valid_axes:
                     
                     if prevInstructions.get(instructionID) != instructionValue:
                         arduino.write(instruction.encode("utf-8"))
