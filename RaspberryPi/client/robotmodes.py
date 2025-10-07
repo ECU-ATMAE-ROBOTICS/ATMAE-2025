@@ -5,7 +5,6 @@ import cv2
 import struct
 from datetime import datetime
 import threading
-import queue
 import colordetect
 from picamera2 import Picamera2
 from collections import Counter
@@ -179,15 +178,6 @@ def send_video(arduino):
 
     cap.release()
     internal_sort.join()
-
-
-
-def serial_interface(arduino):
-    while True:
-        instruction = thread_pipe.get()
-        if instruction is not None:
-            arduino.write(instruction)
-
 
 
 
