@@ -6,7 +6,7 @@ import struct
 from datetime import datetime
 import threading
 import queue
-
+#id 8    -1 to 1   inverse
 SERVER_IP = '192.168.4.32'  # Change to the IP of the server
 PORT = 9999
 
@@ -18,6 +18,9 @@ neutral_mode = 23
 LSTICK_TURN = 5
 LEFT_TRIGGER = 10
 RIGHT_TRIGGER = 9
+RSTICK_TURN=8
+RDPAD=2
+LDPAD=4
 
 #Keeps track of previous inputs sent by an ID to prevent serial clogging
 prevInstructions = {5:0.0, 9:0.0, 10:0.0}
@@ -60,7 +63,7 @@ def teleop(controller, arduino):
                 instructionValue = float(controller.getInputValue(instruction).strip())
                 
                 #Checks if the input is valid to send through serial
-                if instructionID == LSTICK_TURN or instructionID in [LEFT_TRIGGER,RIGHT_TRIGGER]:
+                if instructionID in [LEFT_TRIGGER,RIGHT_TRIGGER,LSTICK_TURN,RSTICK_TURN,RDPAD,LDPAD]:
                     
                     if prevInstructions.get(instructionID) != instructionValue:
                         arduino.write(instruction.encode("utf-8"))
