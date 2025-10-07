@@ -33,7 +33,6 @@ robot_is_close = threading.Event() #Signal to indicate robot is close
 sorting_started = threading.Event() #Signal to indicate internal_sort_mode() thread started
 bin_mode = threading.Event() #Signal to indicated model switch occurred
 
-thread_pipe = queue.Queue()
 
 
 def teleop(controller, arduino):
