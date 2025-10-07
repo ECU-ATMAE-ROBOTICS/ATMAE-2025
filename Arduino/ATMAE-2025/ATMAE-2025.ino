@@ -15,6 +15,8 @@ const int LEFT_TRIGGER_ID = 9;
 const int RIGHT_TRIGGER_ID = 10;
 const int LEFT_STICK_ID = 5;
 const int Right_STICK_ID=8;
+const int Right_STICK_IDX=7;
+
 const int RDPAD=2;
 const int LDPAD=4;
 
@@ -50,11 +52,17 @@ const int clampClosePos=10;
 
 Servo colorSort;
 
+
 //placeholder values for color pos changed later
-int  redPos=30;
-int  yellowPos=60;
-int  greenPos=120;
-int  bluePos=150;
+int sortSpeed=120;
+int  redPin=30;
+int  yellowPin=60;
+int  greenPin=120;
+int  bluePin=150;
+const int limtSwitchPinOne=22;
+const int limtSwitchPinTwo = 23;
+const int limtSwitchPinThree = 24;
+const int limtSwitchPinFour = 25;
 const int centerPos=90;
 //location  of  the drop points (placeholder values)
 const int sepPos=150;
@@ -105,22 +113,10 @@ void setup() {
   clamp.attach(clampPin);
   topSorter.attach(topSorterPin);
   bottomSorter.attach(bottomSorterPin);
-
-}
-void stepperMoveDown()
-{
-      // stepper.moveTo(minStepperPos);
-      stepper.moveTo(downAmount);
-      stepper.run();
-
-
-}
-void stepperMoveUp()
-{
-  stepper.moveTo(upAmount);
-
-  // stepper.moveTo(maxStepperPos);
-  stepper.run();
+  pinMode(limtSwitchPinOne, INPUT_PULLUP); 
+  pinMode(limtSwitchPinTwo, INPUT_PULLUP); 
+  pinMode(limtSwitchPinThree, INPUT_PULLUP); 
+  pinMode(limtSwitchPinFour, INPUT_PULLUP); 
 
 }
 
@@ -192,23 +188,57 @@ void resetBot(){
 
 void toRed()
 {
-  colorSort.write(redPos);
+  colorSort.write(sortSpeed);
+  while(digitalRead(redPin)== HIGH)
+  {
+
+  }
+  if(digitalRead(redPin)== LOW)
+  {
+    colorSort.write(90);
+  }
 }
 
 void toGreen()
 {
-  colorSort.write(greenPos);
+  colorSort.write(sortSpeed);
+  while(digitalRead(greenPin)== HIGH)
+  {
+
+  }
+  if(digitalRead(greenPin)== LOW)
+  {
+    colorSort.write(90);
+    //open hatch later
+  }
 }
 
 void toBlue()
 {
-  colorSort.write(bluePos);
+  colorSort.write(sortSpeed);
+  while(digitalRead(bluePin)== HIGH)
+  {
+
+  }
+  if(digitalRead(bluePin)== LOW)
+  {
+    colorSort.write(90);
+    //open hatch later
+  }
 }
 
 void toYellow()
 {
-  colorSort.write(yellowPos);
-}
+  colorSort.write(sortSpeed);
+  while(digitalRead(yellowPin)== HIGH)
+  {
+
+  }
+  if(digitalRead(yellowPin)== LOW)
+  {
+    colorSort.write(90);
+    //open hatch later
+  }}
 void toCenter()
 {
   colorSort.write(centerPos);
@@ -220,6 +250,22 @@ void openClamp()
 void closeClamp()
 {
   clamp.write(clampClosePos);
+}
+void stepperMoveDown()
+{
+      // stepper.moveTo(minStepperPos);
+      stepper.moveTo(downAmount);
+      stepper.run();
+
+
+}
+void stepperMoveUp()
+{
+  stepper.moveTo(upAmount);
+
+  // stepper.moveTo(maxStepperPos);
+  stepper.run();
+
 }
 
 
@@ -287,51 +333,52 @@ void closeClamp()
 
     
     } 
-    else if(button_id==LDPAD)
+    else if(button_id==Right_STICK_IDX)
     {
-      if(axis_val==1)
+      if(axis_val>0)
       {
         openClamp();
       }
-    }
-    else if(button_id==RDPAD)
-    {
-      if(axis_val==1)
+      else if(axis_val<0)
       {
         closeClamp();
       }
     }
+
+  
     
     
     else {
       // Error handling if data doesn't contain ':'
       if(data=="sepBlue")
       {
-          bluePos=sepPos;
-          redPos=Pos1;
-          yellowPos=Pos2;
-          greenPos=Pos3;
+          bluePin=limtSwitchPinOne;
+          redPin=limtSwitchPinTwo;
+          yellowPin=limtSwitchPinThree;
+          greenPin=limtSwitchPinFour;
       }
       else  if(data=="sepRed")
       {
-          redPos=sepPos;
-          bluePos=Pos1;
-          yellowPos=Pos2;
-          greenPos=Pos3;
+          redPin=limtSwitchPinOne;
+          bluePin=limtSwitchPinTwo;
+          yellowPin=limtSwitchPinThree;
+          greenPin=limtSwitchPinFour;
+
+          
       }
       else if(data=="sepGreen")
       {
-          greenPos=sepPos;
-          bluePos=Pos1;
-          yellowPos=Pos2;
-          redPos=Pos3;
+          redPin=limtSwitchPinFour;
+          bluePin=limtSwitchPinTwo;
+          yellowPin=limtSwitchPinThree;
+          greenPin=limtSwitchPinOne;
       }
-      else if(data=="sepGreen")
+      else if(data=="sepYellow")
       {
-          yellowPos=sepPos;
-          bluePos=Pos1;
-          greenPos=Pos2;
-          redPos=Pos3;
+          redPin=limtSwitchPinFour;
+          bluePin=limtSwitchPinTwo;
+          yellowPin=limtSwitchPinOne;
+          greenPin=limtSwitchPinThree;
       }
 
       else if(data=="toRed")
