@@ -78,7 +78,7 @@ AccelStepper stepper(AccelStepper::FULL4WIRE, StepperOnePin, StepperTwoPin, Step
 const int maxStepperPos=100;
 const int minStepperPos=10;
 const int upAmount=100;
-const int downAmount=-100;
+const int downAmount=10;
 //Servos for open close 
 Servo topSorter;
 Servo bottomSorter;
