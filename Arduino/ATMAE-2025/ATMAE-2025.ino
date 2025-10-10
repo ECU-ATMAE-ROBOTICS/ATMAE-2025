@@ -14,11 +14,11 @@ const int NEUTRAL_ID = 23;
 const int LEFT_TRIGGER_ID = 9;
 const int RIGHT_TRIGGER_ID = 10;
 const int LEFT_STICK_ID = 5;
-const int Right_STICK_ID=8;
-const int Right_STICK_IDX=7;
+const int Right_STICK_ID = 8;
+const int Right_STICK_IDX = 7;
 
-const int RDPAD=2;
-const int LDPAD=4;
+const int RDPAD = 2;
+const int LDPAD = 4;
 
 //Instruction ID and Value received from the Pi
 String receivedData = "";
@@ -46,44 +46,43 @@ Servo rightservo;
 
 //clamp code
 Servo clamp;
-const int clampPin=10;
-const int clampOpenPos=90;
-const int clampClosePos=10;
+const int clampPin = 10;
+const int clampOpenPos = 90;
+const int clampClosePos = 10;
 
 Servo colorSort;
 
 
 //placeholder values for color pos changed later
-int sortSpeed=120;
-int  redPin=30;
-int  yellowPin=60;
-int  greenPin=120;
-int  bluePin=150;
-const int limtSwitchPinOne=22;
+int sortSpeed = 120;
+int redPin = 30;
+int yellowPin = 60;
+int greenPin = 120;
+int bluePin = 150;
+const int limtSwitchPinOne = 22;
 const int limtSwitchPinTwo = 23;
 const int limtSwitchPinThree = 24;
 const int limtSwitchPinFour = 25;
-const int centerPos=90;
+const int centerPos = 90;
 //location  of  the drop points (placeholder values)
-const int sepPos=150;
-const int Pos1=30;
-const int Pos2=60;
-const int Pos3=90;
-//stepper mortor 
-const int StepperOnePin=6;
-const int StepperTwoPin=7;
-const int StepperThreePin=8;
-const int StepperFourPin=9;
-AccelStepper stepper(AccelStepper::FULL4WIRE, StepperOnePin, StepperTwoPin, StepperThreePin, StepperFourPin);
-const int maxStepperPos=100;
-const int minStepperPos=10;
-const int upAmount=100;
-const int downAmount=10;
-//Servos for open close 
+const int sepPos = 150;
+const int Pos1 = 30;
+const int Pos2 = 60;
+const int Pos3 = 90;
+//stepper mortor
+const int StepPin = 28;
+const int DirPin = 26;
+
+AccelStepper stepper(AccelStepper::DRIVER, StepPin, DirPin);
+const int maxStepperPos = 100;
+const int minStepperPos = 10;
+const int upAmount = 100;
+const int downAmount = 10;
+//Servos for open close
 Servo topSorter;
 Servo bottomSorter;
-const int topSorterPin=12;
-const int bottomSorterPin=13;
+const int topSorterPin = 12;
+const int bottomSorterPin = 13;
 double RightStick = 0;
 
 
@@ -113,11 +112,10 @@ void setup() {
   clamp.attach(clampPin);
   topSorter.attach(topSorterPin);
   bottomSorter.attach(bottomSorterPin);
-  pinMode(limtSwitchPinOne, INPUT_PULLUP); 
-  pinMode(limtSwitchPinTwo, INPUT_PULLUP); 
-  pinMode(limtSwitchPinThree, INPUT_PULLUP); 
-  pinMode(limtSwitchPinFour, INPUT_PULLUP); 
-
+  pinMode(limtSwitchPinOne, INPUT_PULLUP);
+  pinMode(limtSwitchPinTwo, INPUT_PULLUP);
+  pinMode(limtSwitchPinThree, INPUT_PULLUP);
+  pinMode(limtSwitchPinFour, INPUT_PULLUP);
 }
 
 /*
@@ -142,34 +140,34 @@ void loop() {
     }
   }
 
-    drive = RightTrigger - LeftTrigger;
+  drive = RightTrigger - LeftTrigger;
 
-    //1500 is the stop value for both motors
-    RMotor = 1500;
-    LMotor = 1500;
+  //1500 is the stop value for both motors
+  RMotor = 1500;
+  LMotor = 1500;
 
-    //Drive and Turn
-    if(abs(drive) > 0){
-      RMotor = 1500 + 500 * drive * (1 - rightTurn);
-      LMotor = 1500 - 500 * drive * (1 - leftTurn);//Motor is inverted
-    }
-    //Turn in place
-    else if (button_id == 5){
-      RMotor = 1500 + 500 * LeftStick;
-      LMotor = 1500 + 500 * LeftStick;
-    }
+  //Drive and Turn
+  if (abs(drive) > 0) {
+    RMotor = 1500 + 500 * drive * (1 - rightTurn);
+    LMotor = 1500 - 500 * drive * (1 - leftTurn);  //Motor is inverted
+  }
+  //Turn in place
+  else if (button_id == 5) {
+    RMotor = 1500 + 500 * LeftStick;
+    LMotor = 1500 + 500 * LeftStick;
+  }
 
-    //Set motor speed
-    leftservo.writeMicroseconds(LMotor);
-    rightservo.writeMicroseconds(RMotor);
+  //Set motor speed
+  leftservo.writeMicroseconds(LMotor);
+  rightservo.writeMicroseconds(RMotor);
 
-  if (Auto){
+  if (Auto) {
     1;
   }
 }
 
 //Resets the bot when in neutral mode
-void resetBot(){
+void resetBot() {
 
   //Reset Teleop control variables
   RightTrigger = 0;
@@ -186,245 +184,189 @@ void resetBot(){
   rightservo.writeMicroseconds(RMotor);
 }
 
-void toRed()
-{
+void toRed() {
   colorSort.write(sortSpeed);
-  while(digitalRead(redPin)== HIGH)
-  {
-
+  while (digitalRead(redPin) == HIGH) {
   }
-  if(digitalRead(redPin)== LOW)
-  {
+  if (digitalRead(redPin) == LOW) {
     colorSort.write(90);
   }
 }
 
-void toGreen()
-{
+void toGreen() {
   colorSort.write(sortSpeed);
-  while(digitalRead(greenPin)== HIGH)
-  {
-
+  while (digitalRead(greenPin) == HIGH) {
   }
-  if(digitalRead(greenPin)== LOW)
-  {
+  if (digitalRead(greenPin) == LOW) {
     colorSort.write(90);
     //open hatch later
   }
 }
 
-void toBlue()
-{
+void toBlue() {
   colorSort.write(sortSpeed);
-  while(digitalRead(bluePin)== HIGH)
-  {
-
+  while (digitalRead(bluePin) == HIGH) {
   }
-  if(digitalRead(bluePin)== LOW)
-  {
+  if (digitalRead(bluePin) == LOW) {
     colorSort.write(90);
     //open hatch later
   }
 }
 
-void toYellow()
-{
+void toYellow() {
   colorSort.write(sortSpeed);
-  while(digitalRead(yellowPin)== HIGH)
-  {
-
+  while (digitalRead(yellowPin) == HIGH) {
   }
-  if(digitalRead(yellowPin)== LOW)
-  {
+  if (digitalRead(yellowPin) == LOW) {
     colorSort.write(90);
     //open hatch later
-  }}
-void toCenter()
-{
+  }
+}
+void toCenter() {
   colorSort.write(centerPos);
 }
-void openClamp()
-{
+void openClamp() {
   clamp.write(clampOpenPos);
 }
-void closeClamp()
-{
+void closeClamp() {
   clamp.write(clampClosePos);
 }
-void stepperMoveDown()
-{
-      // stepper.moveTo(minStepperPos);
-      stepper.moveTo(downAmount);
-      stepper.run();
-
-
+void stepperMoveDown() {
+  // stepper.moveTo(minStepperPos);
+  stepper.moveTo(downAmount);
+  stepper.run();
 }
-void stepperMoveUp()
-{
+void stepperMoveUp() {
   stepper.moveTo(upAmount);
 
   // stepper.moveTo(maxStepperPos);
   stepper.run();
-
 }
 
 
 
 //Parses the instuction recieved from the Pi
-  void parseData(String data) {
-    int splitIndex = data.indexOf(':');  // Find where the ';' is
-    if (splitIndex != -1) {              // Ensure ';' exists in the data
-      String buttonStr = data.substring(0, splitIndex);
-      String axisStr = data.substring(splitIndex + 1);
+void parseData(String data) {
+  int splitIndex = data.indexOf(':');  // Find where the ';' is
+  if (splitIndex != -1) {              // Ensure ';' exists in the data
+    String buttonStr = data.substring(0, splitIndex);
+    String axisStr = data.substring(splitIndex + 1);
 
-      // Convert to int and double
-      button_id = buttonStr.toInt(); //ID of the input
-      axis_val = axisStr.toDouble(); //Value of the input
+    // Convert to int and double
+    button_id = buttonStr.toInt();  //ID of the input
+    axis_val = axisStr.toDouble();  //Value of the input
 
-      //Forwards (RightTrigger)
-      if (button_id == RIGHT_TRIGGER_ID) {
-        RightTrigger = (1 + axis_val) / 2;
+    //Forwards (RightTrigger)
+    if (button_id == RIGHT_TRIGGER_ID) {
+      RightTrigger = (1 + axis_val) / 2;
 
-        if (RightTrigger < .2){
-          RightTrigger = 0;
-        }
-      } 
-      //Reverse (Left Trigger)
-      else if (button_id == LEFT_TRIGGER_ID) {
-        LeftTrigger = (1 + axis_val) / 2;
+      if (RightTrigger < .2) {
+        RightTrigger = 0;
+      }
+    }
+    //Reverse (Left Trigger)
+    else if (button_id == LEFT_TRIGGER_ID) {
+      LeftTrigger = (1 + axis_val) / 2;
 
-        if (LeftTrigger < .2){
-          LeftTrigger = 0;
-        }
+      if (LeftTrigger < .2) {
+        LeftTrigger = 0;
+      }
+    }
+
+    //Turning (Left-Stick X axis)
+    else if (button_id == LEFT_STICK_ID) {
+      LeftStick = axis_val;
+
+      //Turn right
+      if (axis_val > 0) {
+        rightTurn = axis_val;
+        leftTurn = 0;
+      }
+      //Turn left
+      else if (axis_val < 0) {
+        rightTurn = 0;
+        leftTurn = -axis_val;
+      }
+      //Full Stop
+      else {
+        rightTurn = 0;
+        leftTurn = 0;
+      }
+    }
+    //Stepper Motor Movemnet
+    else if (button_id == Right_STICK_ID) {
+      RightStick = axis_val;
+
+      //Go Down
+      if (axis_val > 0) {
+        stepperMoveDown();
+      }
+      //Go up
+      else if (axis_val < 0) {
+        stepperMoveUp();
       }
 
-      //Turning (Left-Stick X axis)
-      else if (button_id == LEFT_STICK_ID) {
-        LeftStick = axis_val;
 
-        //Turn right
-        if (axis_val > 0){
-          rightTurn = axis_val;
-          leftTurn = 0;
-        }
-        //Turn left
-        else if (axis_val < 0){
-          rightTurn = 0;
-          leftTurn = -axis_val;
-        }
-        //Full Stop
-        else{
-          rightTurn = 0;
-          leftTurn = 0;
-        }
-      }
-      //Stepper Motor Movemnet 
-      else if (button_id == Right_STICK_ID) {
-        RightStick = axis_val;
-
-        //Go Down 
-        if (axis_val > 0){
-            stepperMoveDown();
-        }
-        //Go up
-        else if (axis_val < 0){
-            stepperMoveUp();
-        }
-
-    
-    } 
-    else if(button_id==Right_STICK_IDX)
-    {
-      if(axis_val>0)
-      {
+    }
+    //Clamp Movement
+    else if (button_id == Right_STICK_IDX) {
+      if (axis_val > 0) {
         openClamp();
-      }
-      else if(axis_val<0)
-      {
+      } else if (axis_val < 0) {
         closeClamp();
       }
     }
 
-  
-    
-    
+
+
+
     else {
       // Error handling if data doesn't contain ':'
-      if(data=="sepBlue")
-      {
-          bluePin=limtSwitchPinOne;
-          redPin=limtSwitchPinTwo;
-          yellowPin=limtSwitchPinThree;
-          greenPin=limtSwitchPinFour;
-      }
-      else  if(data=="sepRed")
-      {
-          redPin=limtSwitchPinOne;
-          bluePin=limtSwitchPinTwo;
-          yellowPin=limtSwitchPinThree;
-          greenPin=limtSwitchPinFour;
+      if (data == "sepBlue") {
+        bluePin = limtSwitchPinOne;
+        redPin = limtSwitchPinTwo;
+        yellowPin = limtSwitchPinThree;
+        greenPin = limtSwitchPinFour;
+      } else if (data == "sepRed") {
+        redPin = limtSwitchPinOne;
+        bluePin = limtSwitchPinTwo;
+        yellowPin = limtSwitchPinThree;
+        greenPin = limtSwitchPinFour;
 
-          
-      }
-      else if(data=="sepGreen")
-      {
-          redPin=limtSwitchPinFour;
-          bluePin=limtSwitchPinTwo;
-          yellowPin=limtSwitchPinThree;
-          greenPin=limtSwitchPinOne;
-      }
-      else if(data=="sepYellow")
-      {
-          redPin=limtSwitchPinFour;
-          bluePin=limtSwitchPinTwo;
-          yellowPin=limtSwitchPinOne;
-          greenPin=limtSwitchPinThree;
+
+      } else if (data == "sepGreen") {
+        redPin = limtSwitchPinFour;
+        bluePin = limtSwitchPinTwo;
+        yellowPin = limtSwitchPinThree;
+        greenPin = limtSwitchPinOne;
+      } else if (data == "sepYellow") {
+        redPin = limtSwitchPinFour;
+        bluePin = limtSwitchPinTwo;
+        yellowPin = limtSwitchPinOne;
+        greenPin = limtSwitchPinThree;
       }
 
-      else if(data=="toRed")
-      {
-          toRed();
+      else if (data == "toRed") {
+        toRed();
+      } else if (data == "toBlue") {
+        toBlue();
+      } else if (data == "toGreen") {
+        toGreen();
+      } else if (data == "toYellow") {
+        toYellow();
+      } else if (data = "toCenter") {
+        toCenter();
+      } else if (data = "closeClamp") {
+        closeClamp();
+      } else if (data = "openClamp") {
+        openClamp();
+      } else if (data = "steppUP") {
+        stepperMoveUp();
+      } else if (data = "steppDown") {
+        stepperMoveDown();
+      } else {
+        Serial.println("Err");
       }
-      else if(data=="toBlue")
-      {
-          toBlue();
-      }
-      else if(data=="toGreen")
-      {
-          toGreen();
-      }
-      else if(data=="toYellow")
-      {
-          toYellow();
-      }
-      else if(data="toCenter")
-      {
-          toCenter();
-      }
-      else if(data="closeClamp")
-      {
-          closeClamp();
-      }
-      else if(data="openClamp")
-      {
-          openClamp();
-      }
-      else if(data="steppUP")
-      {
-          stepperMoveUp();
-      }
-      else if(data="steppDown")
-      {
-          stepperMoveDown();
-      }
-      else
-      {
-              Serial.println("Err");
-
-      }
-    
     }
   }
 }
-
-
