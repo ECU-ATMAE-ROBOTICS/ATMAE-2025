@@ -9,7 +9,7 @@ import colordetect
 from picamera2 import Picamera2
 from collections import Counter
 
-SERVER_IP = '192.168.0.183'  # Change to the IP of the server
+SERVER_IP = '192.168.0.116'  # Change to the IP of the server
 PORT = 9999
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,6 @@ robot_is_close = threading.Event() #Signal to indicate robot is close
 sorting_started = threading.Event() #Signal to indicate internal_sort_mode() thread started
 bin_mode = threading.Event() #Signal to indicated model switch occurred
 
-thread_pipe = queue.Queue()
 
 
 def teleop(controller, arduino):
@@ -164,7 +163,23 @@ def send_video(arduino):
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| send_video() is waiting for sorting to finish")
                                 robot_is_close.clear()
                                 cap.release()
+
+                                #Close clamp and raise forklift
+                                arduino.write('closeClamp\n'.encode('utf-8'))
+                                time.sleep(1)
+                                arduino.write('steppUP\n'.encode('utf-8'))
+                                time.sleep(1)
+                                arduino.write("openClamp\n".encode('utf-8'))
+
+                                    
+
                                 internal_sort.start()
+
+                                arduino.write("9:-1\n".encode("utf-8"))#Stop bot
+                                arduino.write("5:-1\n".encode("utf-8"))#Turn In Place
+                                time.sleep(1)
+                                arduino.write("5:0\n".encode("utf-8"))#Stop Turn
+
 
                                 #Wait for sorting to finish
                                 internal_sort.join()
