@@ -63,6 +63,12 @@ const int limtSwitchPinOne = 22;
 const int limtSwitchPinTwo = 23;
 const int limtSwitchPinThree = 24;
 const int limtSwitchPinFour = 25;
+//bottom servos for colorsort 
+Servo botTwo;
+Servo botThree;
+Servo botFour;
+const int botOpen=0;
+const int botClose=180;
 const int centerPos = 90;
 //location  of  the drop points (placeholder values)
 const int sepPos = 150;
@@ -104,8 +110,8 @@ void setup() {
 
 
   //Initialize the servos
-  leftservo.attach(2);
-  rightservo.attach(3);
+  leftservo.attach(6);
+  rightservo.attach(7);
   colorSort.attach(4);
   stepper.setMaxSpeed(200.0);
   stepper.setAcceleration(100.0);
@@ -116,6 +122,9 @@ void setup() {
   pinMode(limtSwitchPinTwo, INPUT_PULLUP);
   pinMode(limtSwitchPinThree, INPUT_PULLUP);
   pinMode(limtSwitchPinFour, INPUT_PULLUP);
+  botTwo.attach(8);
+  botThree.attach(9);
+  botFour.attach(10);
 }
 
 /*
@@ -148,12 +157,12 @@ void loop() {
 
   //Drive and Turn
   if (abs(drive) > 0) {
-    RMotor = 1500 + 500 * drive * (1 - rightTurn);
+    RMotor = 1500 - 500 * drive * (1 - rightTurn);
     LMotor = 1500 - 500 * drive * (1 - leftTurn);  //Motor is inverted
   }
   //Turn in place
   else if (button_id == 5) {
-    RMotor = 1500 + 500 * LeftStick;
+    RMotor = 1500 - 500 * LeftStick;
     LMotor = 1500 + 500 * LeftStick;
   }
 
@@ -364,9 +373,89 @@ void parseData(String data) {
         stepperMoveUp();
       } else if (data = "steppDown") {
         stepperMoveDown();
+      } else if(data = "openRed") {
+        openRed();
+      } else if(data = "openGreen") {
+        openGreen();
+      } else if(data = "openBlue") {
+        openBlue();
+      } else if(data = "openYelllow") {
+        openYellow();
+      } else if(data = "closeRed") {
+        closeRed();
+      } else if(data = "closeGreen") {
+        closeGreen();
+      } else if(data = "closeBlue") {
+        closeBlue();
+      } else if(data = "closeYellow") {
+        closeYellow();
       } else {
         Serial.println("Err");
       }
     }
   }
+}
+void openBottom(int pin)
+{
+  if(pin==limtSwitchPinTwo)
+  {
+    botTwo.write(botOpen);
+  }
+  if(pin==limtSwitchPinThree)
+  {
+    botThree.write(botOpen);
+  }
+    if(pin==limtSwitchPinFour)
+  {
+    botFour.write(botOpen);
+  }
+  
+}
+void openRed()
+{
+  openBottom(redPin);
+}
+void openGreen()
+{
+  openBottom(greenPin);
+}
+void openBlue()
+{
+  openBottom(bluePin);
+}
+void openYellow()
+{
+  openBottom(yellowPin);
+}
+void closeBottom(int pin)
+{
+  if(pin==limtSwitchPinTwo)
+  {
+    botTwo.write(botClose);
+  }
+  if(pin==limtSwitchPinThree)
+  {
+    botThree.write(botClose);
+  }
+    if(pin==limtSwitchPinFour)
+  {
+    botFour.write(botClose);
+  }
+  
+}
+void closeRed()
+{
+  closeBottom(redPin);
+}
+void closeGreen()
+{
+  closeBottom(greenPin);
+}
+void closeBlue()
+{
+  closeBottom(bluePin);
+}
+void closeYellow()
+{
+  closeBottom(yellowPin);
 }
