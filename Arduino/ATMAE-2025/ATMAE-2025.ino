@@ -125,6 +125,9 @@ void setup() {
   botTwo.attach(8);
   botThree.attach(9);
   botFour.attach(10);
+  stepper.moveTo(upAmount);
+  stepper.run();
+
 }
 
 /*
