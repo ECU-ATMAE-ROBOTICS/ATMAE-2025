@@ -52,8 +52,8 @@ void setup() {
   digitalWrite(LED_PIN, HIGH);
 
   //Initialize the servos
-  leftservo.attach(2);
-  rightservo.attach(3);
+  leftservo.attach(6);
+  rightservo.attach(7);
 }
 
 
@@ -87,12 +87,12 @@ void loop() {
 
     //Drive and Turn
     if(abs(drive) > 0){
-      RMotor = 1500 + 500 * drive * (1 - rightTurn);
+      RMotor = 1500 - 500 * drive * (1 - rightTurn);
       LMotor = 1500 - 500 * drive * (1 - leftTurn);//Motor is inverted
     }
     //Turn in place
     else if (button_id == 5){
-      RMotor = 1500 + 500 * LeftStick;
+      RMotor = 1500 - 500 * LeftStick;
       LMotor = 1500 + 500 * LeftStick;
     }
 
