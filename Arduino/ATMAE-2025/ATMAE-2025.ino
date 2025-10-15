@@ -428,7 +428,6 @@ void parseData(String data) {
     } else if (data == "toBlue") {
       toBlue();
     } else if (data == "toGreen") {
-      Serial.println("inGreen");
       toGreen();
     } else if (data == "toYellow") {
       toYellow();
