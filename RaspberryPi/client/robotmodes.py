@@ -23,7 +23,16 @@ RIGHT_TRIGGER = 9
 RSTICK_YAXIS = 8
 RSTICK_XAXIS = 7
 
+A_BUTTON_ID = 11
+B_BUTTON_ID = 12
+X_BUTTON_ID = 14
+Y_BUTTON_ID = 15
+
 valid_axes = [LSTICK_TURN, LEFT_TRIGGER, RIGHT_TRIGGER, RSTICK_YAXIS, RSTICK_XAXIS]
+
+valid_buttons = [A_BUTTON_ID, B_BUTTON_ID, X_BUTTON_ID, Y_BUTTON_ID]
+
+buttonID_to_color = {11:"Green", 12:"Red", 14:"Blue", 15:"Yellow"}
 
 #Keeps track of previous inputs sent by an ID to prevent serial clogging
 prevInstructions = {5:0.0, 9:0.0, 10:0.0}
@@ -76,7 +85,17 @@ def teleop(controller, arduino):
 
                     #Prevents repetitive values from taking up space in serial
                     prevInstructions[instructionID] = instructionValue
-                
+                elif instructionID in valid_buttons:
+                    gateInstruction = ""
+                    if instructionValue == 1:
+                        gateInstruction = "open" + buttonID_to_color[instructionID] + "\n"
+                    elif instructionValue == 0:
+                        gateInstruction = "close" + buttonID_to_color[instructionID] + "\n"
+                    
+                    if gateInstruction != "":
+                        arduino.write(gateInstruction.encode("utf-8"))
+                        logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| {gateInstruction} command sent")
+
                 #Neutral mode button pressed
                 elif instructionID == neutral_mode:
 
