@@ -2,6 +2,19 @@
 // 192.168.0.228
 //port 9000
 
+/*
+Pin 5
+open 0
+close at 90
+
+Pin 4
+open at 180 
+close at 90
+
+
+
+*/
+
 #define LED_PIN 11
 
 #include <Servo.h>
@@ -54,21 +67,21 @@ Servo colorSort;
 
 
 //placeholder values for color pos changed later
-int sortSpeed = 120;
+int sortSpeed = 50;
 int redPin = 30;
 int yellowPin = 60;
 int greenPin = 120;
 int bluePin = 150;
-const int limtSwitchPinOne = 22;
-const int limtSwitchPinTwo = 23;
-const int limtSwitchPinThree = 24;
-const int limtSwitchPinFour = 25;
+const int limtSwitchPinOne = 37;
+const int limtSwitchPinTwo = 35;
+const int limtSwitchPinThree = 33;
+const int limtSwitchPinFour = 31;
 //bottom servos for colorsort 
 Servo botTwo;
 Servo botThree;
 Servo botFour;
-const int botOpen=0;
-const int botClose=180;
+const int botOpen=180;
+const int botClose=90;
 const int centerPos = 90;
 //location  of  the drop points (placeholder values)
 const int sepPos = 150;
@@ -85,10 +98,10 @@ const int minStepperPos = 10;
 const int upAmount = 100;
 const int downAmount = 10;
 //Servos for open close
-Servo topSorter;
-Servo bottomSorter;
-const int topSorterPin = 12;
-const int bottomSorterPin = 13;
+Servo topAirLock;
+Servo bottomAirLock;
+const int topAirLockPin = 3;
+const int bottomAirLockPin = 2;
 double RightStick = 0;
 
 
@@ -105,29 +118,31 @@ void setup() {
   Serial.begin(9600);
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);
+  // colorSort.write(sortSpeed);
+
 
 
 
 
   //Initialize the servos
-  leftservo.attach(6);
-  rightservo.attach(7);
-  colorSort.attach(4);
+  leftservo.attach(10);
+  rightservo.attach(9);
+  colorSort.attach(6);
   stepper.setMaxSpeed(200.0);
   stepper.setAcceleration(100.0);
   clamp.attach(clampPin);
-  topSorter.attach(topSorterPin);
-  bottomSorter.attach(bottomSorterPin);
+  topAirLock.attach(topAirLockPin);
+  bottomAirLock.attach(bottomAirLockPin);
   pinMode(limtSwitchPinOne, INPUT_PULLUP);
   pinMode(limtSwitchPinTwo, INPUT_PULLUP);
   pinMode(limtSwitchPinThree, INPUT_PULLUP);
   pinMode(limtSwitchPinFour, INPUT_PULLUP);
-  botTwo.attach(8);
-  botThree.attach(9);
-  botFour.attach(10);
+  botTwo.attach(4);
+  botThree.attach(5);
+  botFour.attach(7);
   stepper.moveTo(upAmount);
   stepper.run();
-
+  //bottomAirLock.write(90);
 }
 
 /*
@@ -202,16 +217,25 @@ void toRed() {
   }
   if (digitalRead(redPin) == LOW) {
     colorSort.write(90);
+    openBottomAirLock();
+    delay(1000);
+    closeBottomAirLock();
+
+    
+
   }
 }
 
 void toGreen() {
-  colorSort.write(sortSpeed);
+  // Serial.println("inGreen");
+  colorSort.write(180);
   while (digitalRead(greenPin) == HIGH) {
   }
   if (digitalRead(greenPin) == LOW) {
     colorSort.write(90);
-    //open hatch later
+    openBottomAirLock();
+    delay(1000);
+    closeBottomAirLock();
   }
 }
 
@@ -221,7 +245,9 @@ void toBlue() {
   }
   if (digitalRead(bluePin) == LOW) {
     colorSort.write(90);
-    //open hatch later
+    openBottomAirLock();
+    delay(1000);
+    closeBottomAirLock();
   }
 }
 
@@ -231,7 +257,9 @@ void toYellow() {
   }
   if (digitalRead(yellowPin) == LOW) {
     colorSort.write(90);
-    //open hatch later
+    openBottomAirLock();
+    delay(1000);
+    closeBottomAirLock();
   }
 }
 void toCenter() {
@@ -259,6 +287,7 @@ void stepperMoveUp() {
 
 //Parses the instuction recieved from the Pi
 void parseData(String data) {
+  //Serial.println(data);
   int splitIndex = data.indexOf(':');  // Find where the ';' is
   if (splitIndex != -1) {              // Ensure ';' exists in the data
     String buttonStr = data.substring(0, splitIndex);
@@ -328,12 +357,14 @@ void parseData(String data) {
         closeClamp();
       }
     }
-
-
-
-
-    else {
-      // Error handling if data doesn't contain ':'
+      else {
+        Serial.println("Err");
+      }
+    
+  }
+  else{
+    Serial.print(":()");
+    // Error handling if data doesn't contain ':'
       if (data == "sepBlue") {
         bluePin = limtSwitchPinOne;
         redPin = limtSwitchPinTwo;
@@ -357,60 +388,73 @@ void parseData(String data) {
         yellowPin = limtSwitchPinOne;
         greenPin = limtSwitchPinThree;
       }
-
       else if (data == "toRed") {
         toRed();
       } else if (data == "toBlue") {
         toBlue();
       } else if (data == "toGreen") {
+        Serial.println("inGreen");
         toGreen();
       } else if (data == "toYellow") {
         toYellow();
-      } else if (data = "toCenter") {
+      } else if (data == "toCenter") {
         toCenter();
-      } else if (data = "closeClamp") {
+      } else if (data == "closeClamp") {
         closeClamp();
-      } else if (data = "openClamp") {
+      } else if (data == "openClamp") {
         openClamp();
-      } else if (data = "steppUP") {
+      } else if (data == "steppUP") {
         stepperMoveUp();
-      } else if (data = "steppDown") {
+      } else if (data == "steppDown") {
         stepperMoveDown();
-      } else if(data = "openRed") {
+      } else if(data == "openRed") {
         openRed();
-      } else if(data = "openGreen") {
+      } else if(data == "openGreen") {
         openGreen();
-      } else if(data = "openBlue") {
+      } else if(data == "openBlue") {
         openBlue();
-      } else if(data = "openYelllow") {
+      } else if(data == "openYelllow") {
         openYellow();
-      } else if(data = "closeRed") {
+      } else if(data == "closeRed") {
         closeRed();
-      } else if(data = "closeGreen") {
+      } else if(data == "closeGreen") {
         closeGreen();
-      } else if(data = "closeBlue") {
+      } else if(data == "closeBlue") {
         closeBlue();
-      } else if(data = "closeYellow") {
+      } else if(data == "closeYellow") {
         closeYellow();
-      } else {
-        Serial.println("Err");
+      } 
+      else if(data="openTopAirLock")
+      {
+        openTopAirLock();
       }
-    }
+      else if(data="openBottomAirLock")
+      {
+        openBottomAirLock();
+      }
+      else if(data="closeTopAirLock")
+      {
+        closeTopAirLock();
+      }
+      else if(data="closeBottomAirLock")
+      {
+        closeBottomAirLock();
+      }
   }
 }
 void openBottom(int pin)
 {
   if(pin==limtSwitchPinTwo)
   {
-    botTwo.write(botOpen);
+    botTwo.write(180);
   }
   if(pin==limtSwitchPinThree)
   {
-    botThree.write(botOpen);
+    botThree.write(180);
   }
     if(pin==limtSwitchPinFour)
   {
-    botFour.write(botOpen);
+    botFour.write(0);
   }
   
 }
@@ -461,4 +505,20 @@ void closeBlue()
 void closeYellow()
 {
   closeBottom(yellowPin);
+}
+void openTopAirLock()
+{
+  topAirLock.write(botOpen); 
+}
+void closeTopAirLock()
+{
+  topAirLock.write(botClose); 
+}
+void openBottomAirLock()
+{
+  bottomAirLock.write(botOpen); 
+}
+void closeBottomAirLock()
+{
+  bottomAirLock.write(botClose); 
 }
