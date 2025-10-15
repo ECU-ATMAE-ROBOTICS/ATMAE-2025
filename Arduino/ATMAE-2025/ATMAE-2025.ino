@@ -18,8 +18,8 @@ close at 90
 #define LED_PIN 11
 
 #include <Servo.h>
-#include <Stepper.h>
 #include <AccelStepper.h>
+
 // ID's of controller buttons
 const int TELEOP_ID = 22;
 const int AUTO_ID = 21;
@@ -54,6 +54,7 @@ double RMotor = 1500;
 
 bool Auto = false;
 
+//Motor Servo
 Servo leftservo;
 Servo rightservo;
 
@@ -76,12 +77,20 @@ const int limtSwitchPinOne = 37;
 const int limtSwitchPinTwo = 35;
 const int limtSwitchPinThree = 33;
 const int limtSwitchPinFour = 31;
-//bottom servos for colorsort 
-Servo botTwo;
-Servo botThree;
-Servo botFour;
-const int botOpen=180;
-const int botClose=90;
+
+//Pins for each servo gate
+const int leftPipeGate = 5;
+const int midPipeGate = 7;
+const int rightPipeGate = 4;
+
+//Gate Servos
+Servo rightPipeGateServo;
+Servo midPipeGateServo;
+Servo leftPipeGateServo;
+
+
+
+
 const int centerPos = 90;
 //location  of  the drop points (placeholder values)
 const int sepPos = 150;
@@ -97,13 +106,51 @@ const int maxStepperPos = 100;
 const int minStepperPos = 10;
 const int upAmount = 100;
 const int downAmount = 10;
-//Servos for open close
+
+//Airlock Servos
 Servo topAirLock;
 Servo bottomAirLock;
-const int topAirLockPin = 3;
-const int bottomAirLockPin = 2;
+const int topAirLockPin = 2;
+const int bottomAirLockPin = 3;
+
+//Positions for servos to open and close
+const int openGatePosition = 180;
+const int closeGatePosition = 90;
+
+const int openTopAirLockPosition = 90;
+const int openLowerAirLockPosition = 180;
+
+const int closeTopAirLockPosition = 180;
+const int closeLowerAirLockPosition = 90;
+
 double RightStick = 0;
 
+/*
+----upperAirLock----
+Pin = 2
+Close = 180
+Open = 90
+
+---lowerAirLock----
+Pin = 3
+Close = 90
+Open = 180
+
+---leftPipeGate---
+Pin = 5
+Close = 90
+Open = 0
+
+---midPipeGate---
+Pin = 7
+Close = 90
+Open = 180
+
+---rightPipeGate---
+Pin = 4
+Close = 90
+Open = 180
+*/
 
 
 /*
@@ -120,10 +167,6 @@ void setup() {
   digitalWrite(LED_PIN, HIGH);
   // colorSort.write(sortSpeed);
 
-
-
-
-
   //Initialize the servos
   leftservo.attach(10);
   rightservo.attach(9);
@@ -133,13 +176,15 @@ void setup() {
   clamp.attach(clampPin);
   topAirLock.attach(topAirLockPin);
   bottomAirLock.attach(bottomAirLockPin);
+
   pinMode(limtSwitchPinOne, INPUT_PULLUP);
   pinMode(limtSwitchPinTwo, INPUT_PULLUP);
   pinMode(limtSwitchPinThree, INPUT_PULLUP);
   pinMode(limtSwitchPinFour, INPUT_PULLUP);
-  botTwo.attach(4);
-  botThree.attach(5);
-  botFour.attach(7);
+
+  rightPipeGateServo.attach(rightPipeGate);
+  midPipeGateServo.attach(midPipeGate);
+  leftPipeGateServo.attach(leftPipeGate);
   stepper.moveTo(upAmount);
   stepper.run();
   //bottomAirLock.write(90);
@@ -187,10 +232,6 @@ void loop() {
   //Set motor speed
   leftservo.writeMicroseconds(LMotor);
   rightservo.writeMicroseconds(RMotor);
-
-  if (Auto) {
-    1;
-  }
 }
 
 //Resets the bot when in neutral mode
@@ -220,9 +261,6 @@ void toRed() {
     openBottomAirLock();
     delay(1000);
     closeBottomAirLock();
-
-    
-
   }
 }
 
@@ -356,169 +394,141 @@ void parseData(String data) {
       } else if (axis_val < 0) {
         closeClamp();
       }
+    } else {
+      Serial.println("Err");
     }
-      else {
-        Serial.println("Err");
-      }
-    
-  }
-  else{
-    Serial.print(":()");
+
+  } else {
+    Serial.println(data);
     // Error handling if data doesn't contain ':'
-      if (data == "sepBlue") {
-        bluePin = limtSwitchPinOne;
-        redPin = limtSwitchPinTwo;
-        yellowPin = limtSwitchPinThree;
-        greenPin = limtSwitchPinFour;
-      } else if (data == "sepRed") {
-        redPin = limtSwitchPinOne;
-        bluePin = limtSwitchPinTwo;
-        yellowPin = limtSwitchPinThree;
-        greenPin = limtSwitchPinFour;
+    if (data == "sepBlue") {
+      bluePin = limtSwitchPinOne;
+      redPin = limtSwitchPinTwo;
+      yellowPin = limtSwitchPinThree;
+      greenPin = limtSwitchPinFour;
+    } else if (data == "sepRed") {
+      redPin = limtSwitchPinOne;
+      bluePin = limtSwitchPinTwo;
+      yellowPin = limtSwitchPinThree;
+      greenPin = limtSwitchPinFour;
 
 
-      } else if (data == "sepGreen") {
-        redPin = limtSwitchPinFour;
-        bluePin = limtSwitchPinTwo;
-        yellowPin = limtSwitchPinThree;
-        greenPin = limtSwitchPinOne;
-      } else if (data == "sepYellow") {
-        redPin = limtSwitchPinFour;
-        bluePin = limtSwitchPinTwo;
-        yellowPin = limtSwitchPinOne;
-        greenPin = limtSwitchPinThree;
-      }
-      else if (data == "toRed") {
-        toRed();
-      } else if (data == "toBlue") {
-        toBlue();
-      } else if (data == "toGreen") {
-        Serial.println("inGreen");
-        toGreen();
-      } else if (data == "toYellow") {
-        toYellow();
-      } else if (data == "toCenter") {
-        toCenter();
-      } else if (data == "closeClamp") {
-        closeClamp();
-      } else if (data == "openClamp") {
-        openClamp();
-      } else if (data == "steppUP") {
-        stepperMoveUp();
-      } else if (data == "steppDown") {
-        stepperMoveDown();
-      } else if(data == "openRed") {
-        openRed();
-      } else if(data == "openGreen") {
-        openGreen();
-      } else if(data == "openBlue") {
-        openBlue();
-      } else if(data == "openYelllow") {
-        openYellow();
-      } else if(data == "closeRed") {
-        closeRed();
-      } else if(data == "closeGreen") {
-        closeGreen();
-      } else if(data == "closeBlue") {
-        closeBlue();
-      } else if(data == "closeYellow") {
-        closeYellow();
-      } 
-      else if(data="openTopAirLock")
-      {
-        openTopAirLock();
-      }
-      else if(data="openBottomAirLock")
-      {
-        openBottomAirLock();
-      }
-      else if(data="closeTopAirLock")
-      {
-        closeTopAirLock();
-      }
-      else if(data="closeBottomAirLock")
-      {
-        closeBottomAirLock();
-      }
+    } else if (data == "sepGreen") {
+      redPin = limtSwitchPinFour;
+      bluePin = limtSwitchPinTwo;
+      yellowPin = limtSwitchPinThree;
+      greenPin = limtSwitchPinOne;
+    } else if (data == "sepYellow") {
+      redPin = limtSwitchPinFour;
+      bluePin = limtSwitchPinTwo;
+      yellowPin = limtSwitchPinOne;
+      greenPin = limtSwitchPinThree;
+    } else if (data == "toRed") {
+      toRed();
+    } else if (data == "toBlue") {
+      toBlue();
+    } else if (data == "toGreen") {
+      Serial.println("inGreen");
+      toGreen();
+    } else if (data == "toYellow") {
+      toYellow();
+    } else if (data == "toCenter") {
+      toCenter();
+    } else if (data == "closeClamp") {
+      closeClamp();
+    } else if (data == "openClamp") {
+      openClamp();
+    } else if (data == "steppUP") {
+      stepperMoveUp();
+    } else if (data == "steppDown") {
+      stepperMoveDown();
+    } else if (data == "openRed") {
+      openRed();
+    } else if (data == "openGreen") {
+      openGreen();
+    } else if (data == "openBlue") {
+      openBlue();
+    } else if (data == "openYellow") {
+      openYellow();
+    } else if (data == "closeRed") {
+      closeRed();
+    } else if (data == "closeGreen") {
+      closeGreen();
+    } else if (data == "closeBlue") {
+      closeBlue();
+    } else if (data == "closeYellow") {
+      closeYellow();
+    } else if (data == "openTopAirLock") {
+      //Serial.println("Opening top airlock");
+      openTopAirLock();
+    } else if (data == "openBottomAirLock") {
+      //Serial.println("Opening bottom airlock");
+      openBottomAirLock();
+    } else if (data == "closeTopAirLock") {
+      //Serial.println("closing top airlock");
+      closeTopAirLock();
+    } else if (data == "closeBottomAirLock") {
+      //Serial.println("closing bottom airlock");
+      closeBottomAirLock();
+    }
   }
 }
-void openBottom(int pin)
-{
-  if(pin==limtSwitchPinTwo)
-  {
-    botTwo.write(180);
+void openBottom(int pin) {
+  Serial.println(pin);
+  if (pin == limtSwitchPinTwo) {
+    rightPipeGateServo.write(openGatePosition);
   }
-  if(pin==limtSwitchPinThree)
-  {
-    botThree.write(180);
+  if (pin == limtSwitchPinThree) {
+    midPipeGateServo.write(openGatePosition);
   }
-    if(pin==limtSwitchPinFour)
-  {
-    botFour.write(0);
+  if (pin == limtSwitchPinFour) {
+    leftPipeGateServo.write(0);
   }
-  
 }
-void openRed()
-{
+void openRed() {
   openBottom(redPin);
 }
-void openGreen()
-{
+void openGreen() {
   openBottom(greenPin);
 }
-void openBlue()
-{
+void openBlue() {
   openBottom(bluePin);
 }
-void openYellow()
-{
+void openYellow() {
   openBottom(yellowPin);
 }
-void closeBottom(int pin)
-{
-  if(pin==limtSwitchPinTwo)
-  {
-    botTwo.write(botClose);
+void closeBottom(int pin) {
+  if (pin == limtSwitchPinTwo) {
+    rightPipeGateServo.write(closeGatePosition);
   }
-  if(pin==limtSwitchPinThree)
-  {
-    botThree.write(botClose);
+  if (pin == limtSwitchPinThree) {
+    midPipeGateServo.write(closeGatePosition);
   }
-    if(pin==limtSwitchPinFour)
-  {
-    botFour.write(botClose);
+  if (pin == limtSwitchPinFour) {
+    leftPipeGateServo.write(closeGatePosition);
   }
-  
 }
-void closeRed()
-{
+void closeRed() {
   closeBottom(redPin);
 }
-void closeGreen()
-{
+void closeGreen() {
   closeBottom(greenPin);
 }
-void closeBlue()
-{
+void closeBlue() {
   closeBottom(bluePin);
 }
-void closeYellow()
-{
+void closeYellow() {
   closeBottom(yellowPin);
 }
-void openTopAirLock()
-{
-  topAirLock.write(botOpen); 
+void openTopAirLock() {
+  topAirLock.write(openTopAirLockPosition);
 }
-void closeTopAirLock()
-{
-  topAirLock.write(botClose); 
+void closeTopAirLock() {
+  topAirLock.write(closeTopAirLockPosition);
 }
-void openBottomAirLock()
-{
-  bottomAirLock.write(botOpen); 
+void openBottomAirLock() {
+  bottomAirLock.write(openLowerAirLockPosition);
 }
-void closeBottomAirLock()
-{
-  bottomAirLock.write(botClose); 
+void closeBottomAirLock() {
+  bottomAirLock.write(closeLowerAirLockPosition);
 }
