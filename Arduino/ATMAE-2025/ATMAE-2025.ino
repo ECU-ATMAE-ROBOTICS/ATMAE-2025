@@ -68,7 +68,7 @@ Servo colorSort;
 
 
 //placeholder values for color pos changed later
-int sortSpeed = 50;
+int sortSpeed = 70;
 int redPin = 30;
 int yellowPin = 60;
 int greenPin = 120;
@@ -187,6 +187,14 @@ void setup() {
   leftPipeGateServo.attach(leftPipeGate);
   stepper.moveTo(upAmount);
   stepper.run();
+  openTopAirLock();
+  closeBottomAirLock();
+  rightPipeGateServo.write(closeGatePosition);
+  midPipeGateServo.write(closeGatePosition);
+  leftPipeGateServo.write(closeGatePosition);
+
+
+
   //bottomAirLock.write(90);
 }
 
@@ -253,52 +261,145 @@ void resetBot() {
 }
 
 void toRed() {
-  colorSort.write(sortSpeed);
-  while (digitalRead(redPin) == HIGH) {
+  colorSort.write(35);
+  while(true)
+  {
+    if (digitalRead(redPin) == LOW) 
+    {
+      colorSort.write(90);
+      closeTopAirLock();
+      delay(2000);
+      openBottomAirLock();
+      delay(2000);
+      closeBottomAirLock();
+      delay(1000);
+      openTopAirLock();
+      delay(1000);
+      closeTopAirLock();
+      break;
+     }
+      if (digitalRead(limtSwitchPinOne) == LOW) {
+       colorSort.write(140);
+    }
+
   }
-  if (digitalRead(redPin) == LOW) {
-    colorSort.write(90);
-    openBottomAirLock();
-    delay(1000);
-    closeBottomAirLock();
-  }
+  // colorSort.write(120);
+  // while (digitalRead(redPin) == HIGH) {
+  // }
+  // if (digitalRead(redPin) == LOW) {
+  //   colorSort.write(90);
+  //   openBottomAirLock();
+  //   delay(1000);
+  //   closeBottomAirLock();
+  // }
 }
 
 void toGreen() {
   // Serial.println("inGreen");
-  colorSort.write(180);
-  while (digitalRead(greenPin) == HIGH) {
+  colorSort.write(35);
+  while(true)
+  {
+    if (digitalRead(greenPin) == LOW) 
+    {
+      colorSort.write(90);
+      closeTopAirLock();
+      delay(2000);
+      openBottomAirLock();
+      delay(2000);
+      closeBottomAirLock();
+      delay(1000);
+      openTopAirLock();
+      delay(1000);
+      closeTopAirLock();
+
+      break;
+     }
+      if (digitalRead(limtSwitchPinOne) == LOW) {
+       colorSort.write(140);
+    }
+
   }
-  if (digitalRead(greenPin) == LOW) {
-    colorSort.write(90);
-    openBottomAirLock();
-    delay(1000);
-    closeBottomAirLock();
-  }
+  // colorSort.write(180);
+  // while (digitalRead(greenPin) == HIGH) {
+  // }
+  // if (digitalRead(greenPin) == LOW) {
+  //   colorSort.write(90);
+  //   openBottomAirLock();
+  //   delay(1000);
+  //   closeBottomAirLock();
+  // }
 }
 
 void toBlue() {
-  colorSort.write(sortSpeed);
-  while (digitalRead(bluePin) == HIGH) {
+  colorSort.write(35);
+  while(true)
+  {
+    if (digitalRead(bluePin) == LOW) 
+    {
+      colorSort.write(90);
+      closeTopAirLock();
+      delay(2000);
+      openBottomAirLock();
+      delay(2000);
+      closeBottomAirLock();
+      delay(1000);
+      openTopAirLock();
+      delay(1000);
+      closeTopAirLock();
+
+      break;
+     }
+      if (digitalRead(limtSwitchPinOne) == LOW) {
+       colorSort.write(140);
+    }
+
   }
-  if (digitalRead(bluePin) == LOW) {
-    colorSort.write(90);
-    openBottomAirLock();
-    delay(1000);
-    closeBottomAirLock();
-  }
+  // colorSort.write(sortSpeed);
+  // while (digitalRead(bluePin) == HIGH) {
+  // }
+  // if (digitalRead(bluePin) == LOW) {
+  //   colorSort.write(90);
+  //   openBottomAirLock();
+  //   delay(1000);
+  //   closeBottomAirLock();
+  // }
 }
 
 void toYellow() {
-  colorSort.write(sortSpeed);
-  while (digitalRead(yellowPin) == HIGH) {
+  colorSort.write(35);
+  while(true)
+  {
+    if (digitalRead(yellowPin) == LOW) 
+    {
+      colorSort.write(90);
+      closeTopAirLock();
+      delay(2000);
+      openBottomAirLock();
+      delay(2000);
+      closeBottomAirLock();
+      delay(1000);
+      openTopAirLock();
+      delay(1000);
+      closeTopAirLock();
+
+      break;
+     }
+      if (digitalRead(limtSwitchPinOne) == LOW) {
+       colorSort.write(140);
+    }
+
   }
-  if (digitalRead(yellowPin) == LOW) {
-    colorSort.write(90);
-    openBottomAirLock();
-    delay(1000);
-    closeBottomAirLock();
-  }
+  // while (digitalRead(yellowPin) == HIGH||limtSwitchPinOne==HIGH) {
+  //   if (limtSwitchPinOne == LOW) {
+  //      colorSort.write(80);
+  //   }
+  // }
+  // if (digitalRead(yellowPin) == LOW) {
+  //   colorSort.write(90);
+  //   openBottomAirLock();
+  //   delay(1000);
+  //   closeBottomAirLock();
+  // }
 }
 void toCenter() {
   colorSort.write(centerPos);
@@ -469,7 +570,13 @@ void parseData(String data) {
     } else if (data == "closeBottomAirLock") {
       //Serial.println("closing bottom airlock");
       closeBottomAirLock();
+    } else if(data=="stopSort"){
+        Serial.println("stop sort");
+
+        stopSort();
+
     }
+
   }
 }
 void openBottom(int pin) {
@@ -530,4 +637,8 @@ void openBottomAirLock() {
 }
 void closeBottomAirLock() {
   bottomAirLock.write(closeLowerAirLockPosition);
+}
+void stopSort()
+{
+  colorSort.write(90);
 }
