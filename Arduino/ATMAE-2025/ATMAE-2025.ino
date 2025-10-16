@@ -2,9 +2,23 @@
 // 192.168.0.228
 //port 9000
 
+/*
+Pin 5
+open 0
+close at 90
+
+Pin 4
+open at 180 
+close at 90
+
+
+
+*/
+
 #define LED_PIN 11
 
 #include <Servo.h>
+#include <AccelStepper.h>
 
 // ID's of controller buttons
 const int TELEOP_ID = 22;
@@ -13,6 +27,11 @@ const int NEUTRAL_ID = 23;
 const int LEFT_TRIGGER_ID = 9;
 const int RIGHT_TRIGGER_ID = 10;
 const int LEFT_STICK_ID = 5;
+const int Right_STICK_ID = 8;
+const int Right_STICK_IDX = 7;
+
+const int RDPAD = 2;
+const int LDPAD = 4;
 
 //Instruction ID and Value received from the Pi
 String receivedData = "";
@@ -35,8 +54,104 @@ double RMotor = 1500;
 
 bool Auto = false;
 
+//Motor Servo
 Servo leftservo;
 Servo rightservo;
+
+//clamp code
+Servo clamp;
+const int clampPin = 10;
+const int clampOpenPos = 90;
+const int clampClosePos = 10;
+
+Servo colorSort;
+
+
+//placeholder values for color pos changed later
+int sortSpeed = 70;
+int redPin = 30;
+int yellowPin = 60;
+int greenPin = 120;
+int bluePin = 150;
+const int limtSwitchPinOne = 37;
+const int limtSwitchPinTwo = 35;
+const int limtSwitchPinThree = 33;
+const int limtSwitchPinFour = 31;
+
+//Pins for each servo gate
+const int leftPipeGate = 5;
+const int midPipeGate = 7;
+const int rightPipeGate = 4;
+
+//Gate Servos
+Servo rightPipeGateServo;
+Servo midPipeGateServo;
+Servo leftPipeGateServo;
+
+
+
+
+const int centerPos = 90;
+//location  of  the drop points (placeholder values)
+const int sepPos = 150;
+const int Pos1 = 30;
+const int Pos2 = 60;
+const int Pos3 = 90;
+//stepper mortor
+const int StepPin = 28;
+const int DirPin = 26;
+
+AccelStepper stepper(AccelStepper::DRIVER, StepPin, DirPin);
+const int maxStepperPos = 100;
+const int minStepperPos = 10;
+const int upAmount = 100;
+const int downAmount = 10;
+
+//Airlock Servos
+Servo topAirLock;
+Servo bottomAirLock;
+const int topAirLockPin = 2;
+const int bottomAirLockPin = 3;
+
+//Positions for servos to open and close
+const int openGatePosition = 180;
+const int closeGatePosition = 90;
+
+const int openTopAirLockPosition = 90;
+const int openLowerAirLockPosition = 180;
+
+const int closeTopAirLockPosition = 180;
+const int closeLowerAirLockPosition = 90;
+
+double RightStick = 0;
+
+/*
+----upperAirLock----
+Pin = 2
+Close = 180
+Open = 90
+
+---lowerAirLock----
+Pin = 3
+Close = 90
+Open = 180
+
+---leftPipeGate---
+Pin = 5
+Close = 90
+Open = 0
+
+---midPipeGate---
+Pin = 7
+Close = 90
+Open = 180
+
+---rightPipeGate---
+Pin = 4
+Close = 90
+Open = 180
+*/
+
 
 /*
 Parses instructions from the PI
@@ -50,12 +165,38 @@ void setup() {
   Serial.begin(9600);
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);
+  // colorSort.write(sortSpeed);
 
   //Initialize the servos
-  leftservo.attach(6);
-  rightservo.attach(7);
-}
+  leftservo.attach(10);
+  rightservo.attach(9);
+  colorSort.attach(6);
+  stepper.setMaxSpeed(200.0);
+  stepper.setAcceleration(100.0);
+  clamp.attach(clampPin);
+  topAirLock.attach(topAirLockPin);
+  bottomAirLock.attach(bottomAirLockPin);
 
+  pinMode(limtSwitchPinOne, INPUT_PULLUP);
+  pinMode(limtSwitchPinTwo, INPUT_PULLUP);
+  pinMode(limtSwitchPinThree, INPUT_PULLUP);
+  pinMode(limtSwitchPinFour, INPUT_PULLUP);
+
+  rightPipeGateServo.attach(rightPipeGate);
+  midPipeGateServo.attach(midPipeGate);
+  leftPipeGateServo.attach(leftPipeGate);
+  stepper.moveTo(upAmount);
+  stepper.run();
+  openTopAirLock();
+  closeBottomAirLock();
+  rightPipeGateServo.write(closeGatePosition);
+  midPipeGateServo.write(closeGatePosition);
+  leftPipeGateServo.write(closeGatePosition);
+
+
+
+  //bottomAirLock.write(90);
+}
 
 /*
 ____    ____  ______    __   _______      __        ______     ______   .______   
@@ -79,34 +220,30 @@ void loop() {
     }
   }
 
-    drive = RightTrigger - LeftTrigger;
+  drive = RightTrigger - LeftTrigger;
 
-    //1500 is the stop value for both motors
-    RMotor = 1500;
-    LMotor = 1500;
+  //1500 is the stop value for both motors
+  RMotor = 1500;
+  LMotor = 1500;
 
-    //Drive and Turn
-    if(abs(drive) > 0){
-      RMotor = 1500 - 500 * drive * (1 - rightTurn);
-      LMotor = 1500 - 500 * drive * (1 - leftTurn);//Motor is inverted
-    }
-    //Turn in place
-    else if (button_id == 5){
-      RMotor = 1500 - 500 * LeftStick;
-      LMotor = 1500 + 500 * LeftStick;
-    }
-
-    //Set motor speed
-    leftservo.writeMicroseconds(LMotor);
-    rightservo.writeMicroseconds(RMotor);
-
-  if (Auto){
-    1;
+  //Drive and Turn
+  if (abs(drive) > 0) {
+    RMotor = 1500 - 500 * drive * (1 - rightTurn);
+    LMotor = 1500 - 500 * drive * (1 - leftTurn);  //Motor is inverted
   }
+  //Turn in place
+  else if (button_id == 5) {
+    RMotor = 1500 - 500 * LeftStick;
+    LMotor = 1500 + 500 * LeftStick;
+  }
+
+  //Set motor speed
+  leftservo.writeMicroseconds(LMotor);
+  rightservo.writeMicroseconds(RMotor);
 }
 
 //Resets the bot when in neutral mode
-void resetBot(){
+void resetBot() {
 
   //Reset Teleop control variables
   RightTrigger = 0;
@@ -123,30 +260,195 @@ void resetBot(){
   rightservo.writeMicroseconds(RMotor);
 }
 
+void toRed() {
+  colorSort.write(35);
+  while(true)
+  {
+    if (digitalRead(redPin) == LOW) 
+    {
+      colorSort.write(90);
+      closeTopAirLock();
+      delay(2000);
+      openBottomAirLock();
+      delay(2000);
+      closeBottomAirLock();
+      delay(1000);
+      openTopAirLock();
+      delay(1000);
+      closeTopAirLock();
+      break;
+     }
+      if (digitalRead(limtSwitchPinOne) == LOW) {
+       colorSort.write(140);
+    }
+
+  }
+  // colorSort.write(120);
+  // while (digitalRead(redPin) == HIGH) {
+  // }
+  // if (digitalRead(redPin) == LOW) {
+  //   colorSort.write(90);
+  //   openBottomAirLock();
+  //   delay(1000);
+  //   closeBottomAirLock();
+  // }
+}
+
+void toGreen() {
+  // Serial.println("inGreen");
+  colorSort.write(35);
+  while(true)
+  {
+    if (digitalRead(greenPin) == LOW) 
+    {
+      colorSort.write(90);
+      closeTopAirLock();
+      delay(2000);
+      openBottomAirLock();
+      delay(2000);
+      closeBottomAirLock();
+      delay(1000);
+      openTopAirLock();
+      delay(1000);
+      closeTopAirLock();
+
+      break;
+     }
+      if (digitalRead(limtSwitchPinOne) == LOW) {
+       colorSort.write(140);
+    }
+
+  }
+  // colorSort.write(180);
+  // while (digitalRead(greenPin) == HIGH) {
+  // }
+  // if (digitalRead(greenPin) == LOW) {
+  //   colorSort.write(90);
+  //   openBottomAirLock();
+  //   delay(1000);
+  //   closeBottomAirLock();
+  // }
+}
+
+void toBlue() {
+  colorSort.write(35);
+  while(true)
+  {
+    if (digitalRead(bluePin) == LOW) 
+    {
+      colorSort.write(90);
+      closeTopAirLock();
+      delay(2000);
+      openBottomAirLock();
+      delay(2000);
+      closeBottomAirLock();
+      delay(1000);
+      openTopAirLock();
+      delay(1000);
+      closeTopAirLock();
+
+      break;
+     }
+      if (digitalRead(limtSwitchPinOne) == LOW) {
+       colorSort.write(140);
+    }
+
+  }
+  // colorSort.write(sortSpeed);
+  // while (digitalRead(bluePin) == HIGH) {
+  // }
+  // if (digitalRead(bluePin) == LOW) {
+  //   colorSort.write(90);
+  //   openBottomAirLock();
+  //   delay(1000);
+  //   closeBottomAirLock();
+  // }
+}
+
+void toYellow() {
+  colorSort.write(35);
+  while(true)
+  {
+    if (digitalRead(yellowPin) == LOW) 
+    {
+      colorSort.write(90);
+      closeTopAirLock();
+      delay(2000);
+      openBottomAirLock();
+      delay(2000);
+      closeBottomAirLock();
+      delay(1000);
+      openTopAirLock();
+      delay(1000);
+      closeTopAirLock();
+
+      break;
+     }
+      if (digitalRead(limtSwitchPinOne) == LOW) {
+       colorSort.write(140);
+    }
+
+  }
+  // while (digitalRead(yellowPin) == HIGH||limtSwitchPinOne==HIGH) {
+  //   if (limtSwitchPinOne == LOW) {
+  //      colorSort.write(80);
+  //   }
+  // }
+  // if (digitalRead(yellowPin) == LOW) {
+  //   colorSort.write(90);
+  //   openBottomAirLock();
+  //   delay(1000);
+  //   closeBottomAirLock();
+  // }
+}
+void toCenter() {
+  colorSort.write(centerPos);
+}
+void openClamp() {
+  clamp.write(clampOpenPos);
+}
+void closeClamp() {
+  clamp.write(clampClosePos);
+}
+void stepperMoveDown() {
+  // stepper.moveTo(minStepperPos);
+  stepper.moveTo(downAmount);
+  stepper.run();
+}
+void stepperMoveUp() {
+  stepper.moveTo(upAmount);
+
+  // stepper.moveTo(maxStepperPos);
+  stepper.run();
+}
+
+
+
 //Parses the instuction recieved from the Pi
 void parseData(String data) {
+  //Serial.println(data);
   int splitIndex = data.indexOf(':');  // Find where the ';' is
   if (splitIndex != -1) {              // Ensure ';' exists in the data
     String buttonStr = data.substring(0, splitIndex);
     String axisStr = data.substring(splitIndex + 1);
 
     // Convert to int and double
-    button_id = buttonStr.toInt(); //ID of the input
-    axis_val = axisStr.toDouble(); //Value of the input
+    button_id = buttonStr.toInt();  //ID of the input
+    axis_val = axisStr.toDouble();  //Value of the input
 
     //Forwards (RightTrigger)
     if (button_id == RIGHT_TRIGGER_ID) {
       RightTrigger = (1 + axis_val) / 2;
 
-      if (RightTrigger < .2){
+      if (RightTrigger < .2) {
         RightTrigger = 0;
       }
-    } 
+    }
     //Reverse (Left Trigger)
     else if (button_id == LEFT_TRIGGER_ID) {
       LeftTrigger = (1 + axis_val) / 2;
 
-      if (LeftTrigger < .2){
+      if (LeftTrigger < .2) {
         LeftTrigger = 0;
       }
     }
@@ -156,35 +458,187 @@ void parseData(String data) {
       LeftStick = axis_val;
 
       //Turn right
-      if (axis_val > 0){
+      if (axis_val > 0) {
         rightTurn = axis_val;
         leftTurn = 0;
       }
       //Turn left
-      else if (axis_val < 0){
+      else if (axis_val < 0) {
         rightTurn = 0;
         leftTurn = -axis_val;
       }
       //Full Stop
-      else{
+      else {
         rightTurn = 0;
         leftTurn = 0;
       }
     }
+    //Stepper Motor Movemnet
+    else if (button_id == Right_STICK_ID) {
+      RightStick = axis_val;
 
-    else if (button_id == NEUTRAL_ID){
-      resetBot();
-      Auto = false;
+      //Go Down
+      if (axis_val > 0) {
+        stepperMoveDown();
+      }
+      //Go up
+      else if (axis_val < 0) {
+        stepperMoveUp();
+      }
+
+
     }
-
-    else if (button_id == AUTO_ID){
-      resetBot();
-      Auto = true;
-      
+    //Clamp Movement
+    else if (button_id == Right_STICK_IDX) {
+      if (axis_val > 0) {
+        openClamp();
+      } else if (axis_val < 0) {
+        closeClamp();
+      }
+    } else {
+      Serial.println("Err");
     }
 
   } else {
+    Serial.println(data);
     // Error handling if data doesn't contain ':'
-    Serial.println("Err");
+    if (data == "sepBlue") {
+      bluePin = limtSwitchPinOne;
+      redPin = limtSwitchPinTwo;
+      yellowPin = limtSwitchPinThree;
+      greenPin = limtSwitchPinFour;
+    } else if (data == "sepRed") {
+      redPin = limtSwitchPinOne;
+      bluePin = limtSwitchPinTwo;
+      yellowPin = limtSwitchPinThree;
+      greenPin = limtSwitchPinFour;
+
+
+    } else if (data == "sepGreen") {
+      redPin = limtSwitchPinFour;
+      bluePin = limtSwitchPinTwo;
+      yellowPin = limtSwitchPinThree;
+      greenPin = limtSwitchPinOne;
+    } else if (data == "sepYellow") {
+      redPin = limtSwitchPinFour;
+      bluePin = limtSwitchPinTwo;
+      yellowPin = limtSwitchPinOne;
+      greenPin = limtSwitchPinThree;
+    } else if (data == "toRed") {
+      toRed();
+    } else if (data == "toBlue") {
+      toBlue();
+    } else if (data == "toGreen") {
+      toGreen();
+    } else if (data == "toYellow") {
+      toYellow();
+    } else if (data == "toCenter") {
+      toCenter();
+    } else if (data == "closeClamp") {
+      closeClamp();
+    } else if (data == "openClamp") {
+      openClamp();
+    } else if (data == "steppUP") {
+      stepperMoveUp();
+    } else if (data == "steppDown") {
+      stepperMoveDown();
+    } else if (data == "openRed") {
+      openRed();
+    } else if (data == "openGreen") {
+      openGreen();
+    } else if (data == "openBlue") {
+      openBlue();
+    } else if (data == "openYellow") {
+      openYellow();
+    } else if (data == "closeRed") {
+      closeRed();
+    } else if (data == "closeGreen") {
+      closeGreen();
+    } else if (data == "closeBlue") {
+      closeBlue();
+    } else if (data == "closeYellow") {
+      closeYellow();
+    } else if (data == "openTopAirLock") {
+      //Serial.println("Opening top airlock");
+      openTopAirLock();
+    } else if (data == "openBottomAirLock") {
+      //Serial.println("Opening bottom airlock");
+      openBottomAirLock();
+    } else if (data == "closeTopAirLock") {
+      //Serial.println("closing top airlock");
+      closeTopAirLock();
+    } else if (data == "closeBottomAirLock") {
+      //Serial.println("closing bottom airlock");
+      closeBottomAirLock();
+    } else if(data=="stopSort"){
+        Serial.println("stop sort");
+
+        stopSort();
+
+    }
+
   }
+}
+void openBottom(int pin) {
+  Serial.println(pin);
+  if (pin == limtSwitchPinTwo) {
+    rightPipeGateServo.write(openGatePosition);
+  }
+  if (pin == limtSwitchPinThree) {
+    midPipeGateServo.write(openGatePosition);
+  }
+  if (pin == limtSwitchPinFour) {
+    leftPipeGateServo.write(0);
+  }
+}
+void openRed() {
+  openBottom(redPin);
+}
+void openGreen() {
+  openBottom(greenPin);
+}
+void openBlue() {
+  openBottom(bluePin);
+}
+void openYellow() {
+  openBottom(yellowPin);
+}
+void closeBottom(int pin) {
+  if (pin == limtSwitchPinTwo) {
+    rightPipeGateServo.write(closeGatePosition);
+  }
+  if (pin == limtSwitchPinThree) {
+    midPipeGateServo.write(closeGatePosition);
+  }
+  if (pin == limtSwitchPinFour) {
+    leftPipeGateServo.write(closeGatePosition);
+  }
+}
+void closeRed() {
+  closeBottom(redPin);
+}
+void closeGreen() {
+  closeBottom(greenPin);
+}
+void closeBlue() {
+  closeBottom(bluePin);
+}
+void closeYellow() {
+  closeBottom(yellowPin);
+}
+void openTopAirLock() {
+  topAirLock.write(openTopAirLockPosition);
+}
+void closeTopAirLock() {
+  topAirLock.write(closeTopAirLockPosition);
+}
+void openBottomAirLock() {
+  bottomAirLock.write(openLowerAirLockPosition);
+}
+void closeBottomAirLock() {
+  bottomAirLock.write(closeLowerAirLockPosition);
+}
+void stopSort()
+{
+  colorSort.write(90);
 }
