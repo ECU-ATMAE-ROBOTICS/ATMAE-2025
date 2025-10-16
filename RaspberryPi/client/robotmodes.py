@@ -5,9 +5,11 @@ import cv2
 import struct
 from datetime import datetime
 import threading
-import queue
-#id 8    -1 to 1   inverse
-SERVER_IP = '192.168.4.32'  # Change to the IP of the server
+import colordetect
+from picamera2 import Picamera2
+from collections import Counter
+
+SERVER_IP = '192.168.0.116'  # Change to the IP of the server
 PORT = 9999
 
 logger = logging.getLogger(__name__)
@@ -18,15 +20,28 @@ neutral_mode = 23
 LSTICK_TURN = 5
 LEFT_TRIGGER = 10
 RIGHT_TRIGGER = 9
-RSTICK_TURN=8
-RDPAD=2
-LDPAD=4
+RSTICK_YAXIS = 8
+RSTICK_XAXIS = 7
+
+A_BUTTON_ID = 11
+B_BUTTON_ID = 12
+X_BUTTON_ID = 14
+Y_BUTTON_ID = 15
+
+valid_axes = [LSTICK_TURN, LEFT_TRIGGER, RIGHT_TRIGGER, RSTICK_YAXIS, RSTICK_XAXIS]
+
+valid_buttons = [A_BUTTON_ID, B_BUTTON_ID, X_BUTTON_ID, Y_BUTTON_ID]
+
+buttonID_to_color = {11:"Green", 12:"Red", 14:"Blue", 15:"Yellow"}
 
 #Keeps track of previous inputs sent by an ID to prevent serial clogging
 prevInstructions = {5:0.0, 9:0.0, 10:0.0}
 
-stop_threads = threading.Event()
-thread_pipe = queue.Queue()
+stop_video_thread = threading.Event() #Signal to stop send_video() thread
+robot_is_close = threading.Event() #Signal to indicate robot is close
+sorting_started = threading.Event() #Signal to indicate internal_sort_mode() thread started
+bin_mode = threading.Event() #Signal to indicated model switch occurred
+
 
 
 def teleop(controller, arduino):
@@ -63,14 +78,24 @@ def teleop(controller, arduino):
                 instructionValue = float(controller.getInputValue(instruction).strip())
                 
                 #Checks if the input is valid to send through serial
-                if instructionID in [LEFT_TRIGGER,RIGHT_TRIGGER,LSTICK_TURN,RSTICK_TURN,RDPAD,LDPAD]:
+                if instructionID in valid_axes:
                     
                     if prevInstructions.get(instructionID) != instructionValue:
                         arduino.write(instruction.encode("utf-8"))
 
                     #Prevents repetitive values from taking up space in serial
                     prevInstructions[instructionID] = instructionValue
-                
+                elif instructionID in valid_buttons:
+                    gateInstruction = ""
+                    if instructionValue == 1:
+                        gateInstruction = "open" + buttonID_to_color[instructionID] + "\n"
+                    elif instructionValue == 0:
+                        gateInstruction = "close" + buttonID_to_color[instructionID] + "\n"
+                    
+                    if gateInstruction != "":
+                        arduino.write(gateInstruction.encode("utf-8"))
+                        logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| {gateInstruction} command sent")
+
                 #Neutral mode button pressed
                 elif instructionID == neutral_mode:
 
@@ -96,6 +121,8 @@ def send_video(arduino):
     """
 
     cap = cv2.VideoCapture(0)
+    logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| send_video() thread started")
+    internal_sort = threading.Thread(target=internal_sort_mode, args=[arduino])
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.settimeout(5)
@@ -105,15 +132,16 @@ def send_video(arduino):
             connected = True
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Connected to server.")
         except socket.timeout as e:
-            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Connection attempt timed out")
-            stop_threads.set()
+            logger.error(f"|{datetime.now().strftime('%H:%M:%S')}| Connection attempt timed out")
+            stop_video_thread.set()
         except OSError as e:
-            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Failed to connect to server")
-            stop_threads.set()
+            logger.error(f"|{datetime.now().strftime('%H:%M:%S')}| Failed to connect to server")
+            stop_video_thread.set()
 
         
         previous_msg = None
-        while not stop_threads.is_set() and connected:
+        while not stop_video_thread.is_set() and connected:
+
             ret, frame = cap.read()
             if not ret:
                 break
@@ -130,25 +158,60 @@ def send_video(arduino):
 
                 # Wait for acknowledgment
                 instructions = s.recv(1050).decode().split('|')
-
+                
+         
+                #Send instructions to arduino
                 for instruction in instructions:
                     print(instruction)
 
                     if previous_msg != instruction:
+                        previous_msg = instructions
                         arduino.write(instruction.encode('utf-8'))
-                        previous_msg = instruction
+                        #Pause thread until sorting is finished
+                        if "9:-1" in instruction:
+                            robot_is_close.set()
+                            time.sleep(.1)
+                            
+                            #Is the bot in front of bins?
+                            if bin_mode.is_set():
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Robot is close to bins\nExiting video thread")
+                                stop_video_thread.set()
+                            else:
+
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Robot is close to cartons")
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| send_video() is waiting for sorting to finish")
+                                robot_is_close.clear()
+                                cap.release()
+
+                                #Close clamp and raise forklift
+                                arduino.write('closeClamp\n'.encode('utf-8'))
+                                time.sleep(1)
+                                arduino.write('steppUP\n'.encode('utf-8'))
+                                time.sleep(1)
+                                arduino.write("openClamp\n".encode('utf-8'))
+
+                                    
+
+                                internal_sort.start()
+
+                                arduino.write("9:-1\n".encode("utf-8"))#Stop bot
+                                arduino.write("5:-1\n".encode("utf-8"))#Turn In Place
+                                time.sleep(1)
+                                arduino.write("5:0\n".encode("utf-8"))#Stop Turn
+
+
+                                #Wait for sorting to finish
+                                internal_sort.join()
+
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| send_video() stopped waiting")
+                                cap = cv2.VideoCapture(0)
+
             except OSError as e:
-                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Communication to server timed out")
-                stop_threads.set()
+                logger.error(f"|{datetime.now().strftime('%H:%M:%S')}| Communication to server timed out")
+                stop_video_thread.set()
 
-        cap.release()
-
-def serial_interface(arduino):
-    while True:
-        instruction = thread_pipe.get()
-        if instruction is not None:
-            arduino.write(instruction)
-
+    cap.release()
+    internal_sort.join()
 
 
 
@@ -171,21 +234,112 @@ def auto(controller, arduino):
     Returns:
         None
     """
-    
+    #Init the thread
     model_thread = threading.Thread(target=send_video,args=[arduino])
-    stop_threads.clear()
-    model_thread.start()
     
-    while not stop_threads.is_set():
+    #Clear flags
+    stop_video_thread.clear()
+    robot_is_close.clear()
+    sorting_started.clear()
+    bin_mode.clear()
+
+    logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Cleared event flags")
+    
+    model_thread.start()
+
+    
+    
+    while not stop_video_thread.is_set():
         for instruction in controller.getControllerInput():
             inputID = int(controller.getInputID(instruction))
             
         
             if inputID == neutral_mode:
-                stop_threads.set()
+                stop_video_thread.set()
                 model_thread.join()
                 #time.sleep(.5)
                 arduino.write(instruction.encode('utf-8'))
 
         time.sleep(.2)
 
+
+
+def internal_sort_mode(arduino):
+
+    """
+    Run the robot in internal sorting mode.
+
+    Continuously captures frames from the camera, processes them to
+    detect ball colors, and sends corresponding servo commands to
+    the Arduino. Stops after sorting 12 balls.
+
+    Args:
+        arduino (serial.Serial): Serial connection object to the Arduino.
+
+    Returns:
+        None
+    """
+
+    sorting_started.set()
+    
+    logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| internal_sort_mode() thread started")
+    capture = Picamera2(0)
+    capture.start()
+
+    time.sleep(2)  # let auto exposure and white balance settle
+    metadata = capture.capture_metadata()
+
+    capture.set_controls({
+        "AeEnable": False,             # disable auto exposure
+        "AwbEnable": False,            # disable auto white balance
+        "ExposureTime": metadata["ExposureTime"],
+        "AnalogueGain": metadata["AnalogueGain"],
+        "ColourGains": metadata["ColourGains"]
+    })
+
+
+    ball_count = Counter({"red":0, "green":0, "blue":0, "yellow":0})
+    instruction = None
+    color = None
+    
+    color_instruction = {
+              "blue":"toBlue",
+              "red":"toRed",
+              "green":"toGreen",
+              "yellow":"toYellow"
+            }
+    while True:
+        img = capture.capture_array()
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        if not img.any():
+            break
+
+        color = colordetect.detect_color(img)
+        
+        if color != "black":
+           instruction = color_instruction[color]
+           arduino.write(instruction.encode("utf-8"))
+           logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| instruction sent to arduino: {instruction}")
+           ball_count[color]+=1
+           
+           time.sleep(.2)  # Adjust delay as needed
+           print(color)
+           while color != "black":
+               img = capture.capture_array()
+               img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+               if not img.any():
+                   break
+               color = colordetect.detect_color(img)
+
+        if ball_count.total() == 1:  # Assuming 4 indicates completion of sorting 12 balls
+            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| ball count summary: {ball_count}")
+            break
+
+        time.sleep(.1)
+    
+    capture.stop()
+    capture.close()
+
+    sorting_started.clear()
+    bin_mode.set()
+    logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| internal_sort_mode() thread has ended")

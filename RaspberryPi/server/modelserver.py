@@ -11,7 +11,9 @@ import direct
 HOST = ''  # Listen on all interfaces
 PORT = 9999
 
-MODEL = YOLO(r'RaspberryPi\server\best.pt')
+BOX_MODEL = r'RaspberryPi\server\best.pt'
+CARTON_MODEL = r'tbd'
+MODEL = YOLO(r'C:\Users\lozan\OneDrive\Documents\ATMAE\ATMAE-2025\RaspberryPi\server\best.pt')
 
 def receive_frame(conn):
 
@@ -94,7 +96,7 @@ def start_server():
                             break
                         #frame = cv2.resize(frame, (448,448))
                         # Get bboxes from model
-                        boxes= MODEL.predict(source=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), iou=.3, verbose=False)[0].boxes.xyxy.int().tolist()
+                        boxes = MODEL.predict(source=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), iou=.3, verbose=False)[0].boxes.xyxy.int().tolist()
 
                         if len(boxes) > 0:
                             # Get colors from bins and sort bins from left to right
@@ -105,6 +107,7 @@ def start_server():
                             throttle = direct.determine_throttle(frame, boxes)
 
                             messages = f"{direction}|{throttle}"
+                            print(messages)
                         
                         # Comment this out if you dont need visualization
                             for indx, box in enumerate(boxes):
@@ -119,7 +122,9 @@ def start_server():
                             break
                         
                         #print(fr"{messages}")
+                        
                         conn.sendall(messages.encode())
+                        messages = ''
                 cv2.destroyAllWindows()
                 print("[SERVER] Connection closed.")
             except KeyboardInterrupt:

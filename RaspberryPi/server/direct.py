@@ -40,15 +40,18 @@ def determine_throttle(img, boxes):
     img_center = [img_height//2, img_width//2]
     target_bin = boxes[0]
 
+    #xyxy
     bin_height, bin_width = [target_bin[3]-target_bin[1], target_bin[2]-target_bin[0]]
     bin_center = [target_bin[3]-bin_height//2, target_bin[2]-bin_width//2]
 
-    percent_covered =  ((bin_height*2 + bin_width*2)/(img_height*2 + img_width*2)) * 100 #percent of image covered by bin
+    percent_covered =  ((bin_height*bin_width)/(img_height*img_width)) * 100 #percent of image covered by bin
     print(percent_covered)
 
     if percent_covered > 23:
+        #Stop Signal
         return f"9:-1\n"
     else:
+        #Forward Signal
         return f"9:-.6\n"
 
 

@@ -9,7 +9,12 @@ import os
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
-log_path = "/home/ubuntu/Desktop/ATMAE-2025/RaspberryPi/client/logs" 
+log_path = "/home/ecu/Desktop/ATMAE-2025/RaspberryPi/client/logs"
+color_saved = '' #Color being dispensed at Bullseye
+
+color_instructions = {"Red":"sepRed", "Blue":"sepBlue", "Green":"sepGreen", "Yellow":"sepYellow"}
+
+
 
 try:
         if __name__ == "__main__":
@@ -69,6 +74,40 @@ try:
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Serial testing successfull! Message from arduino: {arduino.readline().rstrip()}")
 
 
+            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Determining color to separate")
+            #Selecto color to be saved
+            while color_saved == '':
+                instructions = controller.getControllerInput()
+                if instructions != None:
+                    for instruction in instructions:
+                        print(instruction)
+                        inputID = int(controller.getInputID(instruction))
+                        
+                        match inputID:
+                            # Button A
+                            case 11:
+                                color_saved = "Green"
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Separating GREEN")
+                                break
+                            # Button B
+                            case 12:
+                                color_saved ="Red"
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Separating RED")
+                                break
+                            # Button X
+                            case 14:
+                                color_saved = "Blue"
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Separating BLUE")
+                                break
+                            # Button Y
+                            case 15:
+                                color_saved = "Yellow"
+                                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Separating YELLOW")
+                                break
+
+            arduino.write(color_instructions[color_saved].encode("UTF-8"))
+            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Sent color instruction: {color_instructions[color_saved]}")
+
             while True:
                 #Select robot mode
                 instructions = controller.getControllerInput()
@@ -83,12 +122,15 @@ try:
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|In auto mode")
                                 robotmodes.auto(controller, arduino)
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|In neutral mode")
+                                break 
 
                             #Menu Button
                             case 22:
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|In teleop mode")
                                 robotmodes.teleop(controller, arduino)
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|In neutral mode")
+                                break
+                time.sleep(.1)
 
 
 except KeyboardInterrupt:
