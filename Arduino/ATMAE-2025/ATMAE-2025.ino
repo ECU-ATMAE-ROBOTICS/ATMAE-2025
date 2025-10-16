@@ -73,10 +73,10 @@ int redPin = 30;
 int yellowPin = 60;
 int greenPin = 120;
 int bluePin = 150;
-const int limtSwitchPinOne = 37;
-const int limtSwitchPinTwo = 35;
-const int limtSwitchPinThree = 33;
-const int limtSwitchPinFour = 31;
+const int limitSwitchPinOne = 37;
+const int limitSwitchPinTwo = 35;
+const int limitSwitchPinThree = 33;
+const int limitSwitchPinFour = 31;
 
 //Pins for each servo gate
 const int leftPipeGate = 5;
@@ -124,6 +124,10 @@ const int closeTopAirLockPosition = 180;
 const int closeLowerAirLockPosition = 90;
 
 double RightStick = 0;
+
+// Variable to hold the color being sorted
+int currentPin = 2;
+String colorPins[4];
 
 /*
 ----upperAirLock----
@@ -177,10 +181,10 @@ void setup() {
   topAirLock.attach(topAirLockPin);
   bottomAirLock.attach(bottomAirLockPin);
 
-  pinMode(limtSwitchPinOne, INPUT_PULLUP);
-  pinMode(limtSwitchPinTwo, INPUT_PULLUP);
-  pinMode(limtSwitchPinThree, INPUT_PULLUP);
-  pinMode(limtSwitchPinFour, INPUT_PULLUP);
+  pinMode(limitSwitchPinOne, INPUT_PULLUP);
+  pinMode(limitSwitchPinTwo, INPUT_PULLUP);
+  pinMode(limitSwitchPinThree, INPUT_PULLUP);
+  pinMode(limitSwitchPinFour, INPUT_PULLUP);
 
   rightPipeGateServo.attach(rightPipeGate);
   midPipeGateServo.attach(midPipeGate);
@@ -261,11 +265,18 @@ void resetBot() {
 }
 
 void toRed() {
-  colorSort.write(35);
-  while(true)
-  {
-    if (digitalRead(redPin) == LOW) 
-    {
+  if (indexfromkey("redPin") < currentPin) {
+    colorSort.write(140);
+    currentPin = indexfromkey("redPin");
+  }
+  else if(indexfromkey("redPin") > currentPin) {
+    colorSort.write(40);
+    currentPin = indexfromkey("redPin");
+  }
+
+  
+  while(true) {
+    if (digitalRead(redPin) == LOW) {
       colorSort.write(90);
       closeTopAirLock();
       delay(2000);
@@ -277,11 +288,7 @@ void toRed() {
       delay(1000);
       closeTopAirLock();
       break;
-     }
-      if (digitalRead(limtSwitchPinOne) == LOW) {
-       colorSort.write(140);
-    }
-
+    } 
   }
   // colorSort.write(120);
   // while (digitalRead(redPin) == HIGH) {
@@ -296,7 +303,14 @@ void toRed() {
 
 void toGreen() {
   // Serial.println("inGreen");
-  colorSort.write(35);
+  if (indexfromkey("greenPin") < currentPin) {
+    colorSort.write(140);
+    currentPin = indexfromkey("greenPin");
+  }
+  else if(indexfromkey("greenPin") > currentPin) {
+    colorSort.write(40);
+    currentPin = indexfromkey("greenPin");
+  }
   while(true)
   {
     if (digitalRead(greenPin) == LOW) 
@@ -314,9 +328,6 @@ void toGreen() {
 
       break;
      }
-      if (digitalRead(limtSwitchPinOne) == LOW) {
-       colorSort.write(140);
-    }
 
   }
   // colorSort.write(180);
@@ -331,7 +342,14 @@ void toGreen() {
 }
 
 void toBlue() {
-  colorSort.write(35);
+   if (indexfromkey("bluePin") < currentPin) {
+    colorSort.write(140);
+    currentPin = indexfromkey("bluePin");
+  }
+  else if(indexfromkey("bluePin") > currentPin) {
+    colorSort.write(40);
+    currentPin = indexfromkey("bluePin");
+  }
   while(true)
   {
     if (digitalRead(bluePin) == LOW) 
@@ -349,9 +367,7 @@ void toBlue() {
 
       break;
      }
-      if (digitalRead(limtSwitchPinOne) == LOW) {
-       colorSort.write(140);
-    }
+    
 
   }
   // colorSort.write(sortSpeed);
@@ -366,7 +382,14 @@ void toBlue() {
 }
 
 void toYellow() {
-  colorSort.write(35);
+   if (indexfromkey("yellowPin") < currentPin) {
+    colorSort.write(140);
+    currentPin = indexfromkey("yellowPin");
+  }
+  else if(indexfromkey("yellowPin") > currentPin) {
+    colorSort.write(40);
+    currentPin = indexfromkey("yellowPin");
+  }
   while(true)
   {
     if (digitalRead(yellowPin) == LOW) 
@@ -384,9 +407,7 @@ void toYellow() {
 
       break;
      }
-      if (digitalRead(limtSwitchPinOne) == LOW) {
-       colorSort.write(140);
-    }
+     
 
   }
   // while (digitalRead(yellowPin) == HIGH||limtSwitchPinOne==HIGH) {
@@ -502,28 +523,48 @@ void parseData(String data) {
   } else {
     Serial.println(data);
     // Error handling if data doesn't contain ':'
+    
+    
     if (data == "sepBlue") {
-      bluePin = limtSwitchPinOne;
-      redPin = limtSwitchPinTwo;
-      yellowPin = limtSwitchPinThree;
-      greenPin = limtSwitchPinFour;
-    } else if (data == "sepRed") {
-      redPin = limtSwitchPinOne;
-      bluePin = limtSwitchPinTwo;
-      yellowPin = limtSwitchPinThree;
-      greenPin = limtSwitchPinFour;
+      colorPins[0] = "bluePin";
+      colorPins[1] = "redPin";
+      colorPins[2] = "yellowPin";
+      colorPins[3] = "greenPin";
+      bluePin = limitSwitchPinOne;
+      redPin = limitSwitchPinTwo;
+      yellowPin = limitSwitchPinThree;
+      greenPin = limitSwitchPinFour;
 
+    } else if (data == "sepRed") {
+      colorPins[0] = "redPin";
+      colorPins[1] = "bluePin";
+      colorPins[2] = "yellowPin";
+      colorPins[3] = "greenPin";
+      redPin = limitSwitchPinOne;
+      bluePin = limitSwitchPinTwo;
+      yellowPin = limitSwitchPinThree;
+      greenPin = limitSwitchPinFour;
 
     } else if (data == "sepGreen") {
-      redPin = limtSwitchPinFour;
-      bluePin = limtSwitchPinTwo;
-      yellowPin = limtSwitchPinThree;
-      greenPin = limtSwitchPinOne;
+      colorPins[0] = "greenPin";
+      colorPins[1] = "bluePin";
+      colorPins[2] = "redPin";
+      colorPins[3] = "yellowPin";
+      greenPin = limitSwitchPinOne;
+      bluePin = limitSwitchPinTwo;
+      yellowPin = limitSwitchPinThree;
+      redPin = limitSwitchPinFour;
+
     } else if (data == "sepYellow") {
-      redPin = limtSwitchPinFour;
-      bluePin = limtSwitchPinTwo;
-      yellowPin = limtSwitchPinOne;
-      greenPin = limtSwitchPinThree;
+      colorPins[0] = "yellowPin";
+      colorPins[1] = "bluePin";
+      colorPins[2] = "redPin";
+      colorPins[3] = "greenPin";
+      yellowPin = limitSwitchPinOne;
+      bluePin = limitSwitchPinTwo;
+      redPin = limitSwitchPinThree;
+      greenPin = limitSwitchPinFour;
+
     } else if (data == "toRed") {
       toRed();
     } else if (data == "toBlue") {
@@ -581,13 +622,13 @@ void parseData(String data) {
 }
 void openBottom(int pin) {
   Serial.println(pin);
-  if (pin == limtSwitchPinTwo) {
+  if (pin == limitSwitchPinTwo) {
     rightPipeGateServo.write(openGatePosition);
   }
-  if (pin == limtSwitchPinThree) {
+  if (pin == limitSwitchPinThree) {
     midPipeGateServo.write(openGatePosition);
   }
-  if (pin == limtSwitchPinFour) {
+  if (pin == limitSwitchPinFour) {
     leftPipeGateServo.write(0);
   }
 }
@@ -604,13 +645,13 @@ void openYellow() {
   openBottom(yellowPin);
 }
 void closeBottom(int pin) {
-  if (pin == limtSwitchPinTwo) {
+  if (pin == limitSwitchPinTwo) {
     rightPipeGateServo.write(closeGatePosition);
   }
-  if (pin == limtSwitchPinThree) {
+  if (pin == limitSwitchPinThree) {
     midPipeGateServo.write(closeGatePosition);
   }
-  if (pin == limtSwitchPinFour) {
+  if (pin == limitSwitchPinFour) {
     leftPipeGateServo.write(closeGatePosition);
   }
 }
@@ -641,4 +682,13 @@ void closeBottomAirLock() {
 void stopSort()
 {
   colorSort.write(90);
+}
+
+int indexfromkey(String key) {
+  for (int i = 0; i < 4; i++) {
+    if (colorPins[i] == key) {
+      return i;
+    }
+  }
+  return -1;
 }
