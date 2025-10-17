@@ -106,6 +106,10 @@ def start_server():
                             direction = direct.determine_direction(frame, boxes)
                             throttle = direct.determine_throttle(frame, boxes)
 
+                            if throttle == "9:-1\n":
+                                print("switching to bin model")
+                                pass
+
                             messages = f"{direction}|{throttle}"
                             print(messages)
                         
@@ -127,6 +131,7 @@ def start_server():
                         messages = ''
                 cv2.destroyAllWindows()
                 print("[SERVER] Connection closed.")
+                print("switching to carton model...\n")
             except KeyboardInterrupt:
                 s.close()
                 exit()
