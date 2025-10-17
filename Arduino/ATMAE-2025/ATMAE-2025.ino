@@ -617,6 +617,14 @@ void parseData(String data) {
         stopSort();
 
     }
+    else if(data="goForward")
+    {
+      goForward();     
+    }
+    else if(data="turnAround")
+    {
+      turnAround();
+    }
 
   }
 }
@@ -691,4 +699,20 @@ int indexfromkey(String key) {
     }
   }
   return -1;
+}
+void goForward()
+{
+  leftservo.writeMicroseconds(1200);
+  rightservo.writeMicroseconds(1200);
+  delay(2000);
+  leftservo.writeMicroseconds(1500);
+  rightservo.writeMicroseconds(1500);
+}
+void turnAround()
+{
+  leftservo.writeMicroseconds(1200);
+  rightservo.writeMicroseconds(1800);
+  delay(2000);
+  leftservo.writeMicroseconds(1500);
+  rightservo.writeMicroseconds(1500);
 }
