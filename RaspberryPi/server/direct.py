@@ -1,5 +1,9 @@
 import math
 
+def clamp(n, smallest, largest):
+  return max(smallest, min(n, largest))
+
+
 def determine_direction(img, boxes):
     """
     Determine the direction a robot should move to align with a target bin
@@ -20,15 +24,14 @@ def determine_direction(img, boxes):
     img_center = [img_height//2, img_width//2]
     target_bin = boxes[0]
 
+    #Target position for off-center camera
+    target_x_pos = 90
+
     bin_height, bin_width = [target_bin[3]-target_bin[1], target_bin[2]-target_bin[0]]
     bin_center = [target_bin[3]-bin_height//2, target_bin[2]-bin_width//2]
 
-    amount_to_turn = (bin_center[1]/img_center[1] -1)
-
-    #Account for right drift
-    if amount_to_turn > 0:
-        amount_to_turn = 1
-
+    #amount_to_turn = (bin_center[1]/img_center[1] -1)
+    amount_to_turn = clamp(bin_center[1]/target_x_pos -1, -1, 1)
     turn = f"5:{amount_to_turn:.2f}\n" # Turn
     
     return turn
