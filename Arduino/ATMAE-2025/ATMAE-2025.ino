@@ -64,6 +64,11 @@ const int clampPin = 10;
 const int clampOpenPos = 90;
 const int clampClosePos = 10;
 
+
+Servo screw;
+
+
+// Defines  the Smart Servo Sorting that move the color sorter 
 Servo colorSort;
 
 
@@ -77,6 +82,10 @@ const int limitSwitchPinOne = 37;
 const int limitSwitchPinTwo = 35;
 const int limitSwitchPinThree = 33;
 const int limitSwitchPinFour = 31;
+const int limitSwitchPinFive = 999;
+const int limitSwitchPinSix = 1001;
+
+
 
 //Pins for each servo gate
 const int leftPipeGate = 5;
@@ -97,10 +106,9 @@ const int sepPos = 150;
 const int Pos1 = 30;
 const int Pos2 = 60;
 const int Pos3 = 90;
-//stepper mortor
+//stepper mortor definition
 const int StepPin = 28;
 const int DirPin = 26;
-
 AccelStepper stepper(AccelStepper::DRIVER, StepPin, DirPin);
 const int maxStepperPos = 100;
 const int minStepperPos = 10;
@@ -180,12 +188,16 @@ void setup() {
   clamp.attach(clampPin);
   topAirLock.attach(topAirLockPin);
   bottomAirLock.attach(bottomAirLockPin);
-
+  // Sets the pins for the limit switchs 
   pinMode(limitSwitchPinOne, INPUT_PULLUP);
   pinMode(limitSwitchPinTwo, INPUT_PULLUP);
   pinMode(limitSwitchPinThree, INPUT_PULLUP);
   pinMode(limitSwitchPinFour, INPUT_PULLUP);
+  pinMode(limitSwitchPinFive, INPUT_PULLUP);
+  pinMode(limitSwitchPinSix, INPUT_PULLUP);
 
+
+  //attach the pipes
   rightPipeGateServo.attach(rightPipeGate);
   midPipeGateServo.attach(midPipeGate);
   leftPipeGateServo.attach(leftPipeGate);
@@ -196,7 +208,7 @@ void setup() {
   rightPipeGateServo.write(closeGatePosition);
   midPipeGateServo.write(closeGatePosition);
   leftPipeGateServo.write(closeGatePosition);
-
+  screw.attach(44);
 
 
   //bottomAirLock.write(90);
@@ -625,7 +637,14 @@ void parseData(String data) {
     {
       turnAround();
     }
-
+    else if(data=="screwUP")
+    {
+      screwUP();
+    }
+    else if(data=="screwDown")
+    {
+      screwDown();
+    }
   }
 }
 void openBottom(int pin) {
@@ -715,4 +734,22 @@ void turnAround()
   delay(2000);
   leftservo.writeMicroseconds(1500);
   rightservo.writeMicroseconds(1500);
+}
+void screwUP()
+{
+    screw.writeMicroseconds(2000);
+
+    if (digitalRead(limitSwitchPinFive) == LOW) {
+          screw.writeMicroseconds(1500);
+
+    } 
+}
+void screwDown()
+{
+    screw.writeMicroseconds(1000);
+
+    if (digitalRead(limitSwitchPinSix) == LOW) {
+          screw.writeMicroseconds(1500);
+
+    } 
 }
