@@ -77,6 +77,10 @@ def start_server():
         None
     """
 
+    #Alignment marker on frame
+    circle_pos = (90,360)
+    radius = 10
+
     while True:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
@@ -118,7 +122,7 @@ def start_server():
                                 cv2.rectangle(frame, box[:2], box[2:], (0,0,255), 2)
                             
                             frame = cv2.putText(frame, messages, (20,60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
-                        
+                            frame = cv2.circle(frame, circle_pos, radius,(0, 0, 255), 2)
 
                         # Display the received frame
                         cv2.imshow("Live Feed", frame)
