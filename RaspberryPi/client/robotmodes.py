@@ -194,10 +194,13 @@ def send_video(arduino):
 
                                 internal_sort.start()
 
+
+
                                 arduino.write("9:-1\n".encode("utf-8"))#Stop bot
-                                arduino.write("5:-1\n".encode("utf-8"))#Turn In Place
-                                time.sleep(1)
-                                arduino.write("5:0\n".encode("utf-8"))#Stop Turn
+                                arduino.write("turnAround\n".encode("utf-8"))
+                                # arduino.write("5:-1\n".encode("utf-8"))#Turn In Place
+                                # time.sleep(1)
+                                # arduino.write("5:0\n".encode("utf-8"))#Stop Turn
 
 
                                 #Wait for sorting to finish
@@ -234,6 +237,10 @@ def auto(controller, arduino):
     Returns:
         None
     """
+
+    #Inch robot forward for carton detection
+    arduino.write("goForward\n".encode("utf-8"))
+
     #Init the thread
     model_thread = threading.Thread(target=send_video,args=[arduino])
     
