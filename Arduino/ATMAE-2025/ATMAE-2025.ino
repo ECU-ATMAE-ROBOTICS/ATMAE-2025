@@ -294,6 +294,7 @@ void toRed() {
       openTopAirLock();
       delay(1000);
       //closeTopAirLock();
+      shake();
       break;
     } 
   }
@@ -335,7 +336,7 @@ void toGreen() {
       openTopAirLock();
       delay(1000);
       // closeTopAirLock();
-
+      shake();
       break;
      }
 
@@ -376,7 +377,7 @@ void toBlue() {
       openTopAirLock();
       delay(1000);
       // closeTopAirLock();
-
+      shake();
       break;
      }
     
@@ -418,7 +419,7 @@ void toYellow() {
       openTopAirLock();
       delay(1000);
       // closeTopAirLock();
-
+      shake();
       break;
      }
      
