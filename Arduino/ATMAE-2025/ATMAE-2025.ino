@@ -84,7 +84,7 @@ const int limitSwitchPinFour = 31;
 
 //limit Switchs and Servo for the Lifting System 
 Servo screw;
-const int limitSwitchPinFive = 999;
+const int limitSwitchPinFive = 52;
 const int limitSwitchPinSix = 1001;
 
 
@@ -202,7 +202,7 @@ void setup() {
   midPipeGateServo.write(closeGatePosition);
   leftPipeGateServo.write(closeGatePosition);
   screw.attach(44);
-  screwUp();
+  // screwUp();
 
   //bottomAirLock.write(90);
 }
@@ -294,7 +294,7 @@ void toRed() {
       openTopAirLock();
       delay(1000);
       //closeTopAirLock();
-      shake();
+      // shake();
       break;
     } 
   }
@@ -336,7 +336,7 @@ void toGreen() {
       openTopAirLock();
       delay(1000);
       // closeTopAirLock();
-      shake();
+      // shake();
       break;
      }
 
@@ -377,7 +377,7 @@ void toBlue() {
       openTopAirLock();
       delay(1000);
       // closeTopAirLock();
-      shake();
+      // shake();
       break;
      }
     
@@ -419,7 +419,7 @@ void toYellow() {
       openTopAirLock();
       delay(1000);
       // closeTopAirLock();
-      shake();
+      // shake();
       break;
      }
      
@@ -730,7 +730,7 @@ void turnAround()
 //moves screw to top
 void screwUp()
 {
-    screw.writeMicroseconds(2000);
+    screw.writeMicroseconds(1000);
 
     if (digitalRead(limitSwitchPinFive) == LOW) {
           screw.writeMicroseconds(1500);
@@ -740,7 +740,7 @@ void screwUp()
 // moving the screw motor down
 void screwDown()
 {
-    screw.writeMicroseconds(1000);
+    screw.writeMicroseconds(200);
 
     if (digitalRead(limitSwitchPinSix) == LOW) {
           screw.writeMicroseconds(1500);
