@@ -9,7 +9,7 @@ import colordetect
 from picamera2 import Picamera2
 from collections import Counter
 
-SERVER_IP = '192.168.0.116'  # Change to the IP of the server
+SERVER_IP = '192.168.0.183'  # Change to the IP of the server
 PORT = 9999
 
 logger = logging.getLogger(__name__)
@@ -27,6 +27,8 @@ A_BUTTON_ID = 11
 B_BUTTON_ID = 12
 X_BUTTON_ID = 14
 Y_BUTTON_ID = 15
+
+LEFT_STICK_BUTTON = 25
 
 valid_axes = [LSTICK_TURN, LEFT_TRIGGER, RIGHT_TRIGGER, RSTICK_YAXIS, RSTICK_XAXIS]
 
@@ -79,6 +81,10 @@ def teleop(controller, arduino):
                 
                 #Checks if the input is valid to send through serial
                 if instructionID in valid_axes:
+
+                    if instructionID in [RSTICK_XAXIS, RSTICK_YAXIS]:
+                        if abs(instructionValue) < .8:
+                            continue
                     
                     if prevInstructions.get(instructionID) != instructionValue:
                         arduino.write(instruction.encode("utf-8"))
@@ -102,6 +108,8 @@ def teleop(controller, arduino):
                     #Alert arduino to go in neutral
                     arduino.write(instruction.encode("utf-8"))
                     return
+                elif instructionID == LEFT_STICK_BUTTON:
+                    arduino.write("stopScrew\n".encode('utf-8'))
 
                 
         time.sleep(0.02)
@@ -123,6 +131,7 @@ def send_video(arduino):
     cap = cv2.VideoCapture(0)
     logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| send_video() thread started")
     internal_sort = threading.Thread(target=internal_sort_mode, args=[arduino])
+    prevInstructions = {5:0.0, 9:0.0, 10:0.0}
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.settimeout(5)
@@ -139,7 +148,6 @@ def send_video(arduino):
             stop_video_thread.set()
 
         
-        previous_msg = None
         while not stop_video_thread.is_set() and connected:
 
             ret, frame = cap.read()
@@ -158,17 +166,21 @@ def send_video(arduino):
 
                 # Wait for acknowledgment
                 instructions = s.recv(1050).decode().split('|')
-                
+                print("From Server: ",instructions) 
+                if instructions[0] == 'None\n':
+                    continue
          
                 #Send instructions to arduino
                 for instruction in instructions:
-                    print(instruction)
+                    
+                    instructionID = int(instruction[:instruction.find(":")])
+                    instructionValue = float(instruction[instruction.find(":")+1:])
 
-                    if previous_msg != instruction:
-                        previous_msg = instructions
+                    if instructionValue != prevInstructions.get(instructionID):
+                        prevInstructions[instructionID] = instructionValue
                         arduino.write(instruction.encode('utf-8'))
                         #Pause thread until sorting is finished
-                        if "9:-1" in instruction:
+                        if instruction == "9:-1\n":
                             robot_is_close.set()
                             time.sleep(.1)
                             
@@ -205,7 +217,7 @@ def send_video(arduino):
 
                                 #Wait for sorting to finish
                                 internal_sort.join()
-
+                                prevInstructions = {5:0.0, 9:0.0, 10:0.0}
                                 logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| send_video() stopped waiting")
                                 cap = cv2.VideoCapture(0)
 
@@ -310,11 +322,13 @@ def internal_sort_mode(arduino):
     color = None
     
     color_instruction = {
-              "blue":"toBlue",
-              "red":"toRed",
-              "green":"toGreen",
-              "yellow":"toYellow"
+              "blue":"toBlue\n",
+              "red":"toRed\n",
+              "green":"toGreen\n",
+              "yellow":"toYellow\n"
             }
+
+    arduino.write("openTopAirLock\n".encode("utf-8"))
     while True:
         img = capture.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -337,8 +351,11 @@ def internal_sort_mode(arduino):
                if not img.any():
                    break
                color = colordetect.detect_color(img)
+        else:
+            arduino.write("shake\n".encode("utf-8"))
+            time.sleep(2)
 
-        if ball_count.total() == 1:  # Assuming 4 indicates completion of sorting 12 balls
+        if ball_count.total() == 12:  # Assuming 4 indicates completion of sorting 12 balls
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| ball count summary: {ball_count}")
             break
 

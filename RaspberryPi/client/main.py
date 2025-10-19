@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 log_path = "/home/ecu/Desktop/ATMAE-2025/RaspberryPi/client/logs"
 color_saved = '' #Color being dispensed at Bullseye
 
-color_instructions = {"Red":"sepRed", "Blue":"sepBlue", "Green":"sepGreen", "Yellow":"sepYellow"}
+color_instructions = {"Red":"sepRed\n", "Blue":"sepBlue\n", "Green":"sepGreen\n", "Yellow":"sepYellow\n"}
 
 
 
@@ -72,6 +72,8 @@ try:
                 time.sleep(1)
 
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Serial testing successfull! Message from arduino: {arduino.readline().rstrip()}")
+
+            arduino.write("23:0\n".encode("utf-8")) #Init the bot
 
 
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Determining color to separate")

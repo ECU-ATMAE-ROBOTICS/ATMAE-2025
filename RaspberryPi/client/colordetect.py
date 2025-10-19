@@ -56,7 +56,7 @@ def detect_color(img):
         ((0, 190, 50), (15, 255, 255)),      # Lower red
         ((140, 190, 50), (180, 255, 255))    # Upper red
     ],
-    'green': [((35, 150, 100), (50, 255, 255))],
+    'green': [((35, 150, 100), (65, 255, 255))],
     'blue':  [((90, 200, 15), (125, 255, 255))],
     'yellow':[((16, 130, 70), (40, 255, 255))],
     }
@@ -83,7 +83,7 @@ def detect_color(img):
     detected_color = max(color_pixel_counts, key=lambda c: color_pixel_counts[c][0])
     
     # Return black if the highest color doesnt take up 70% of the image
-    if color_pixel_counts[detected_color][0]/pixel_count < .80:
+    if color_pixel_counts[detected_color][0]/pixel_count < .83:
         return "black"
 
     mask = color_pixel_counts[detected_color][1]
