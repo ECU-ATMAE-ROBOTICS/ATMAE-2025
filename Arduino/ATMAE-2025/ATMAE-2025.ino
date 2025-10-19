@@ -112,11 +112,12 @@ Servo screw;
 const int leftPipeGate = 5;
 const int midPipeGate = 7;
 const int rightPipeGate = 4;
-
+const int sepPipeGate=999;
 //Gate Servos
 Servo rightPipeGateServo;
 Servo midPipeGateServo;
 Servo leftPipeGateServo;
+Servo sepPipeGateServo;
 
 
 
@@ -224,6 +225,7 @@ void setup() {
   midPipeGateServo.write(closeGatePosition);
   leftPipeGateServo.write(closeGatePosition);
   screw.attach(screwServoPin);
+  sepPipeGateServo.attach(sepPipeGate);
   // screwUp();
 
   //set color system slide all the way to first limitswitch
@@ -690,6 +692,10 @@ void openBottom(int pin) {
   if (pin == limitSwitchPinFour) {
     leftPipeGateServo.write(90);
   }
+  if(pin ==limitSwitchPinOne)
+  {
+    sepPipeGateServo.write(0);
+  }
 }
 //opens red pipe
 void openRed() {
@@ -717,6 +723,10 @@ void closeBottom(int pin) {
   }
   if (pin == limitSwitchPinFour) {
     leftPipeGateServo.write(0);
+  }
+  if(pin ==limitSwitchPinOne)
+  {
+    sepPipeGateServo.write(180);
   }
 }
 void closeRed() {
