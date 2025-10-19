@@ -65,7 +65,6 @@ const int clampOpenPos = 90;
 const int clampClosePos = 10;
 
 
-Servo screw;
 
 
 // Defines  the Smart Servo Sorting that move the color sorter 
@@ -82,7 +81,10 @@ const int limitSwitchPinOne = 37;
 const int limitSwitchPinTwo = 35;
 const int limitSwitchPinThree = 33;
 const int limitSwitchPinFour = 31;
-const int limitSwitchPinFive = 999;
+
+//limit Switchs and Servo for the Lifting System 
+Servo screw;
+const int limitSwitchPinFive = 52;
 const int limitSwitchPinSix = 1001;
 
 
@@ -100,20 +102,13 @@ Servo leftPipeGateServo;
 
 
 
-const int centerPos = 90;
 //location  of  the drop points (placeholder values)
-const int sepPos = 150;
-const int Pos1 = 30;
-const int Pos2 = 60;
-const int Pos3 = 90;
-//stepper mortor definition
-const int StepPin = 28;
-const int DirPin = 26;
-AccelStepper stepper(AccelStepper::DRIVER, StepPin, DirPin);
-const int maxStepperPos = 100;
-const int minStepperPos = 10;
-const int upAmount = 100;
-const int downAmount = 10;
+// const int sepPos = 150;
+// const int Pos1 = 30;
+// const int Pos2 = 60;
+// const int Pos3 = 90;
+// const int centerPos = 90;
+
 
 //Airlock Servos
 Servo topAirLock;
@@ -171,7 +166,9 @@ to determine robot movement
 */
 void parseData(String data);
 
-
+/*
+Runs at the start Attach to pins and servo in Startings Pos
+*/
 void setup() {
 
   Serial.begin(9600);
@@ -183,8 +180,6 @@ void setup() {
   leftservo.attach(10);
   rightservo.attach(9);
   colorSort.attach(6);
-  stepper.setMaxSpeed(200.0);
-  stepper.setAcceleration(100.0);
   clamp.attach(clampPin);
   topAirLock.attach(topAirLockPin);
   bottomAirLock.attach(bottomAirLockPin);
@@ -201,15 +196,13 @@ void setup() {
   rightPipeGateServo.attach(rightPipeGate);
   midPipeGateServo.attach(midPipeGate);
   leftPipeGateServo.attach(leftPipeGate);
-  stepper.moveTo(upAmount);
-  stepper.run();
   openTopAirLock();
   closeBottomAirLock();
   rightPipeGateServo.write(closeGatePosition);
   midPipeGateServo.write(closeGatePosition);
   leftPipeGateServo.write(closeGatePosition);
   screw.attach(44);
-
+  // screwUp();
 
   //bottomAirLock.write(90);
 }
@@ -223,7 +216,7 @@ ____    ____  ______    __   _______      __        ______     ______   .______
     \__/     \______/  |__| |_______/    |_______| \______/   \______/  | _|      
                                                                                   
 */
-
+// Runs in a loop
 void loop() {
   //Read From Serial
   if (Serial.available()) {
@@ -275,8 +268,10 @@ void resetBot() {
   leftservo.writeMicroseconds(LMotor);
   rightservo.writeMicroseconds(RMotor);
 }
-
-void toRed() {
+//Find direction and moves towards red pos until Limit Switch is Low then open and close air locks
+void toRed() { 
+    closeTopAirLock();
+  
   if (indexfromkey("redPin") < currentPin) {
     colorSort.write(140);
     currentPin = indexfromkey("redPin");
@@ -298,7 +293,8 @@ void toRed() {
       delay(1000);
       openTopAirLock();
       delay(1000);
-      closeTopAirLock();
+      //closeTopAirLock();
+      // shake();
       break;
     } 
   }
@@ -312,8 +308,11 @@ void toRed() {
   //   closeBottomAirLock();
   // }
 }
+//Find direction and moves towards green pos until Limit Switch is Low then open and close air locks
 
 void toGreen() {
+    closeTopAirLock();
+
   // Serial.println("inGreen");
   if (indexfromkey("greenPin") < currentPin) {
     colorSort.write(140);
@@ -336,8 +335,8 @@ void toGreen() {
       delay(1000);
       openTopAirLock();
       delay(1000);
-      closeTopAirLock();
-
+      // closeTopAirLock();
+      // shake();
       break;
      }
 
@@ -352,8 +351,10 @@ void toGreen() {
   //   closeBottomAirLock();
   // }
 }
+//Find direction and moves towards blue pos until Limit Switch is Low then open and close air locks
 
 void toBlue() {
+    closeTopAirLock();
    if (indexfromkey("bluePin") < currentPin) {
     colorSort.write(140);
     currentPin = indexfromkey("bluePin");
@@ -375,8 +376,8 @@ void toBlue() {
       delay(1000);
       openTopAirLock();
       delay(1000);
-      closeTopAirLock();
-
+      // closeTopAirLock();
+      // shake();
       break;
      }
     
@@ -392,8 +393,10 @@ void toBlue() {
   //   closeBottomAirLock();
   // }
 }
+////Find direction and moves towards yellow pos until Limit Switch is Low then open and close air locks
 
 void toYellow() {
+    closeTopAirLock();
    if (indexfromkey("yellowPin") < currentPin) {
     colorSort.write(140);
     currentPin = indexfromkey("yellowPin");
@@ -415,8 +418,8 @@ void toYellow() {
       delay(1000);
       openTopAirLock();
       delay(1000);
-      closeTopAirLock();
-
+      // closeTopAirLock();
+      // shake();
       break;
      }
      
@@ -434,26 +437,17 @@ void toYellow() {
   //   closeBottomAirLock();
   // }
 }
-void toCenter() {
-  colorSort.write(centerPos);
-}
+
+// opens Clamp
 void openClamp() {
   clamp.write(clampOpenPos);
 }
+//close Clamp
+
 void closeClamp() {
   clamp.write(clampClosePos);
 }
-void stepperMoveDown() {
-  // stepper.moveTo(minStepperPos);
-  stepper.moveTo(downAmount);
-  stepper.run();
-}
-void stepperMoveUp() {
-  stepper.moveTo(upAmount);
 
-  // stepper.moveTo(maxStepperPos);
-  stepper.run();
-}
 
 
 
@@ -506,21 +500,6 @@ void parseData(String data) {
         leftTurn = 0;
       }
     }
-    //Stepper Motor Movemnet
-    else if (button_id == Right_STICK_ID) {
-      RightStick = axis_val;
-
-      //Go Down
-      if (axis_val > 0) {
-        stepperMoveDown();
-      }
-      //Go up
-      else if (axis_val < 0) {
-        stepperMoveUp();
-      }
-
-
-    }
     //Clamp Movement
     else if (button_id == Right_STICK_IDX) {
       if (axis_val > 0) {
@@ -536,7 +515,8 @@ void parseData(String data) {
     Serial.println(data);
     // Error handling if data doesn't contain ':'
     
-    
+    //Check if data is a command
+    //if data is sepColor then sets pos of colors 
     if (data == "sepBlue") {
       colorPins[0] = "bluePin";
       colorPins[1] = "redPin";
@@ -585,16 +565,10 @@ void parseData(String data) {
       toGreen();
     } else if (data == "toYellow") {
       toYellow();
-    } else if (data == "toCenter") {
-      toCenter();
     } else if (data == "closeClamp") {
       closeClamp();
     } else if (data == "openClamp") {
       openClamp();
-    } else if (data == "steppUP") {
-      stepperMoveUp();
-    } else if (data == "steppDown") {
-      stepperMoveDown();
     } else if (data == "openRed") {
       openRed();
     } else if (data == "openGreen") {
@@ -637,16 +611,21 @@ void parseData(String data) {
     {
       turnAround();
     }
-    else if(data=="screwUP")
+    else if(data=="screwUp")
     {
-      screwUP();
+      screwUp();
     }
     else if(data=="screwDown")
     {
       screwDown();
     }
+    else if(data=="shake")
+    {
+      shake();
+    }
   }
 }
+//open all the pipes
 void openBottom(int pin) {
   Serial.println(pin);
   if (pin == limitSwitchPinTwo) {
@@ -659,18 +638,23 @@ void openBottom(int pin) {
     leftPipeGateServo.write(0);
   }
 }
+//opens red pipe
 void openRed() {
   openBottom(redPin);
 }
+//opens green pipe
 void openGreen() {
   openBottom(greenPin);
 }
+//opens blue pipe
 void openBlue() {
   openBottom(bluePin);
 }
+//open yellow pipe
 void openYellow() {
   openBottom(yellowPin);
 }
+//close bottom pipes
 void closeBottom(int pin) {
   if (pin == limitSwitchPinTwo) {
     rightPipeGateServo.write(closeGatePosition);
@@ -694,23 +678,29 @@ void closeBlue() {
 void closeYellow() {
   closeBottom(yellowPin);
 }
+//opens top air lock
 void openTopAirLock() {
   topAirLock.write(openTopAirLockPosition);
 }
+//close top air lock
 void closeTopAirLock() {
   topAirLock.write(closeTopAirLockPosition);
 }
+//opens bottom air lock
+
 void openBottomAirLock() {
   bottomAirLock.write(openLowerAirLockPosition);
 }
+//close bottom air lock
 void closeBottomAirLock() {
   bottomAirLock.write(closeLowerAirLockPosition);
 }
+//stops the colorSort servo  
 void stopSort()
 {
   colorSort.write(90);
 }
-
+// gets index of elment in array
 int indexfromkey(String key) {
   for (int i = 0; i < 4; i++) {
     if (colorPins[i] == key) {
@@ -719,6 +709,7 @@ int indexfromkey(String key) {
   }
   return -1;
 }
+// moves robot Forward
 void goForward()
 {
   leftservo.writeMicroseconds(1200);
@@ -727,6 +718,7 @@ void goForward()
   leftservo.writeMicroseconds(1500);
   rightservo.writeMicroseconds(1500);
 }
+//turn robot around 
 void turnAround()
 {
   leftservo.writeMicroseconds(1200);
@@ -735,21 +727,35 @@ void turnAround()
   leftservo.writeMicroseconds(1500);
   rightservo.writeMicroseconds(1500);
 }
-void screwUP()
+//moves screw to top
+void screwUp()
 {
-    screw.writeMicroseconds(2000);
+    screw.writeMicroseconds(1000);
 
     if (digitalRead(limitSwitchPinFive) == LOW) {
           screw.writeMicroseconds(1500);
 
     } 
 }
+// moving the screw motor down
 void screwDown()
 {
-    screw.writeMicroseconds(1000);
+    screw.writeMicroseconds(200);
 
     if (digitalRead(limitSwitchPinSix) == LOW) {
           screw.writeMicroseconds(1500);
 
     } 
+}
+//shake robot 
+void shake()
+{
+  leftservo.writeMicroseconds(1300);
+  rightservo.writeMicroseconds(1300);
+  delay(500);
+  leftservo.writeMicroseconds(1700);
+  rightservo.writeMicroseconds(17000);
+  delay(500);
+  leftservo.writeMicroseconds(1500);
+  rightservo.writeMicroseconds(1500); 
 }
