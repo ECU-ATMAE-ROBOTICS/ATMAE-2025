@@ -87,8 +87,8 @@ Servo rightservo;
 
 //clamp code
 Servo clamp;
-const int clampOpenPos = 90;
-const int clampClosePos = 10;
+const int clampOpenPos = 1800;
+const int clampClosePos = 1300;
 
 // Defines  the Smart Servo Sorting that move the color sorter
 Servo colorSort;
@@ -145,7 +145,7 @@ const int closeLowerAirLockPosition = 90;
 
 double RightStick = 0;
 
-bool screwOverRide = false; //Used to control screw during teleop
+bool screwOverRide = false;  //Used to control screw during teleop
 
 // Variable to hold the color being sorted
 int currentPin = 0;
@@ -228,7 +228,7 @@ void setup() {
 
   //set color system slide all the way to first limitswitch
   colorSort.write(140);
-  while (digitalRead(limitSwitchPinTwo) != 0){}
+  while (digitalRead(limitSwitchPinTwo) != 0) {}
   colorSort.write(90);
   //bottomAirLock.write(90);
 }
@@ -261,8 +261,11 @@ void loop() {
   RMotor = 1500;
   LMotor = 1500;
 
-  if (digitalRead(topLiftLimitSwitch) == LOW){
+
+  bool reachedTop = true;
+  if (digitalRead(topLiftLimitSwitch) == LOW and reachedTop) {
     screw.writeMicroseconds(1500);
+    reachedTop = false;
   }
 
   //Drive and Turn
@@ -302,9 +305,8 @@ void resetBot() {
   closeBottomAirLock();
 
   colorSort.write(140);
-  while (digitalRead(limitSwitchPinTwo) != 0){}
+  while (digitalRead(limitSwitchPinTwo) != 0) {}
   colorSort.write(90);
-  
 }
 //Find direction and moves towards red pos until Limit Switch is Low then open and close air locks
 void toRed() {
@@ -416,7 +418,7 @@ void toBlue() {
   //   closeBottomAirLock();
   // }
 }
-////Find direction and moves towards yellow pos until Limit Switch is Low then open and close air locks
+////Find direction and moves towards yel    pos until Limit Switch is Low then open and close air locks
 
 void toYellow() {
   closeTopAirLock();
@@ -456,12 +458,12 @@ void toYellow() {
 
 // opens Clamp
 void openClamp() {
-  clamp.write(clampOpenPos);
+  clamp.writeMicroseconds(clampOpenPos);
 }
 //close Clamp
 
 void closeClamp() {
-  clamp.write(clampClosePos);
+  clamp.writeMicroseconds(clampClosePos);
 }
 
 
@@ -523,20 +525,17 @@ void parseData(String data) {
       } else if (axis_val < 0) {
         closeClamp();
       }
-    } 
-    
-    else if (button_id == Right_STICK_IDY){
-      if (axis_val > 0){
+    }
+
+    else if (button_id == Right_STICK_IDY) {
+      if (axis_val > 0) {
         screwDown();
-      }
-      else if (axis_val < 0){
+      } else if (axis_val < 0) {
         screwUp();
       }
-    }
-    else if (button_id == NEUTRAL_ID){
+    } else if (button_id == NEUTRAL_ID) {
       resetBot();
-    }
-    else {
+    } else {
       Serial.println("Err");
     }
 
@@ -628,6 +627,8 @@ void parseData(String data) {
       closeClamp();
     } else if (data == "openClamp") {
       openClamp();
+    } else if (data == "stopClamp") {
+      clamp.writeMicroseconds(1500);
     } else if (data == "openRed") {
       openRed();
     } else if (data == "openGreen") {
@@ -672,8 +673,8 @@ void parseData(String data) {
       screwDown();
     } else if (data == "shake") {
       shake();
-    } else if (data == "stopScrew"){
-      screw.write(1500);
+    } else if (data == "screwStop") {
+      screw.writeMicroseconds(1500);
     }
   }
 }
@@ -684,7 +685,7 @@ void openBottom(int pin) {
     rightPipeGateServo.write(90);
   }
   if (pin == limitSwitchPinThree) {
-    midPipeGateServo.write(160); //Hits right drive motor if at 180 :|
+    midPipeGateServo.write(160);  //Hits right drive motor if at 180 :|
   }
   if (pin == limitSwitchPinFour) {
     leftPipeGateServo.write(90);
@@ -779,10 +780,9 @@ void turnAround() {
 //moves screw to top
 void screwUp() {
   screw.writeMicroseconds(1000);
-
   //while (digitalRead(topLiftLimitSwitch) != 0){}
 
- // screw.writeMicroseconds(1500);
+  // screw.writeMicroseconds(1500);
 }
 // moving the screw motor down
 void screwDown() {

@@ -28,7 +28,15 @@ B_BUTTON_ID = 12
 X_BUTTON_ID = 14
 Y_BUTTON_ID = 15
 
+RIGHT_STICK_BUTTON = 24
 LEFT_STICK_BUTTON = 25
+
+DPAD_UP = 1
+DPAD_RIGHT = 2
+DPAD_DOWN = 3
+DPAD_LEFT = 4
+
+LEFT_BUMPER = 17
 
 valid_axes = [LSTICK_TURN, LEFT_TRIGGER, RIGHT_TRIGGER, RSTICK_YAXIS, RSTICK_XAXIS]
 
@@ -110,9 +118,20 @@ def teleop(controller, arduino):
                     return
                 elif instructionID == LEFT_STICK_BUTTON:
                     arduino.write("stopScrew\n".encode('utf-8'))
+                elif instructionID == DPAD_UP:
+                    arduino.write("screwUp\n".encode('utf-8'))
+                elif instructionID == DPAD_DOWN:
+                    arduino.write("screwDown\n".encode('utf-8'))
+                elif instructionID == DPAD_LEFT:
+                    arduino.write("openClamp\n".encode('utf-8'))
+                elif instructionID == DPAD_RIGHT:
+                    arduino.write("closeClamp\n".encode('utf-8'))
+                elif instructionID == LEFT_BUMPER:
+                    internal_sort_mode(arduino)
 
                 
         time.sleep(0.02)
+
 
 def send_video(arduino):
 
