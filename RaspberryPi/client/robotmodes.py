@@ -118,14 +118,6 @@ def teleop(controller, arduino):
                     return
                 elif instructionID == LEFT_STICK_BUTTON:
                     arduino.write("stopScrew\n".encode('utf-8'))
-                elif instructionID == DPAD_UP:
-                    arduino.write("screwUp\n".encode('utf-8'))
-                elif instructionID == DPAD_DOWN:
-                    arduino.write("screwDown\n".encode('utf-8'))
-                elif instructionID == DPAD_LEFT:
-                    arduino.write("openClamp\n".encode('utf-8'))
-                elif instructionID == DPAD_RIGHT:
-                    arduino.write("closeClamp\n".encode('utf-8'))
                 elif instructionID == LEFT_BUMPER:
                     internal_sort_mode(arduino)
 
