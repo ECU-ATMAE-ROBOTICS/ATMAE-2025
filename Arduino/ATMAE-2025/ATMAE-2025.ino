@@ -263,7 +263,7 @@ void loop() {
 
 
   bool reachedTop = true;
-  if (digitalRead(topLiftLimitSwitch) == LOW and reachedTop) {
+  if (digitalRead(topLiftLimitSwitch) == LOW and not reachedTop) {
     screw.writeMicroseconds(1500);
     reachedTop = false;
   }
