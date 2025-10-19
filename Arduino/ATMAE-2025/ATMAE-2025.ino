@@ -20,6 +20,33 @@ close at 90
 #include <Servo.h>
 #include <AccelStepper.h>
 
+//---PINS---
+
+const int rightDriveMotorPin = 9;
+const int leftDriveMotorPin = 10;
+
+const int screwServoPin = 44;
+const int topLiftLimitSwitch = 52;
+const int bottomLiftLimitSwitch = 1001;
+
+
+const int forkLiftPin = 44;
+const int leftPaddlePin = 11;
+const int rightPaddlePin = 12;
+const int clampPin = 13;
+
+const int topAirLockPin = 2;
+const int bottomAirLockPin = 3;
+
+const int colorSortPin = 6;
+const int limitSwitchPinOne = 37;
+const int limitSwitchPinTwo = 31;
+const int limitSwitchPinThree = 33;
+const int limitSwitchPinFour = 35;
+
+const int rightPaddle = 11;
+const int leftPaddle = 12;
+
 // ID's of controller buttons
 const int TELEOP_ID = 22;
 const int AUTO_ID = 21;
@@ -27,7 +54,7 @@ const int NEUTRAL_ID = 23;
 const int LEFT_TRIGGER_ID = 9;
 const int RIGHT_TRIGGER_ID = 10;
 const int LEFT_STICK_ID = 5;
-const int Right_STICK_ID = 8;
+const int Right_STICK_IDY = 8;
 const int Right_STICK_IDX = 7;
 
 const int RDPAD = 2;
@@ -60,14 +87,10 @@ Servo rightservo;
 
 //clamp code
 Servo clamp;
-const int clampPin = 10;
 const int clampOpenPos = 90;
 const int clampClosePos = 10;
 
-
-
-
-// Defines  the Smart Servo Sorting that move the color sorter 
+// Defines  the Smart Servo Sorting that move the color sorter
 Servo colorSort;
 
 
@@ -77,15 +100,11 @@ int redPin = 30;
 int yellowPin = 60;
 int greenPin = 120;
 int bluePin = 150;
-const int limitSwitchPinOne = 37;
-const int limitSwitchPinTwo = 35;
-const int limitSwitchPinThree = 33;
-const int limitSwitchPinFour = 31;
 
-//limit Switchs and Servo for the Lifting System 
+
+//limit Switchs and Servo for the Lifting System
 Servo screw;
-const int limitSwitchPinFive = 52;
-const int limitSwitchPinSix = 1001;
+
 
 
 
@@ -113,8 +132,6 @@ Servo leftPipeGateServo;
 //Airlock Servos
 Servo topAirLock;
 Servo bottomAirLock;
-const int topAirLockPin = 2;
-const int bottomAirLockPin = 3;
 
 //Positions for servos to open and close
 const int openGatePosition = 180;
@@ -128,8 +145,10 @@ const int closeLowerAirLockPosition = 90;
 
 double RightStick = 0;
 
+bool screwOverRide = false; //Used to control screw during teleop
+
 // Variable to hold the color being sorted
-int currentPin = 2;
+int currentPin = 0;
 String colorPins[4];
 
 /*
@@ -145,8 +164,8 @@ Open = 180
 
 ---leftPipeGate---
 Pin = 5
-Close = 90
-Open = 0
+Close = 0
+Open = 90
 
 ---midPipeGate---
 Pin = 7
@@ -177,19 +196,22 @@ void setup() {
   // colorSort.write(sortSpeed);
 
   //Initialize the servos
-  leftservo.attach(10);
-  rightservo.attach(9);
-  colorSort.attach(6);
+  leftservo.attach(leftDriveMotorPin);
+  rightservo.attach(rightDriveMotorPin);
+  colorSort.attach(colorSortPin);
   clamp.attach(clampPin);
   topAirLock.attach(topAirLockPin);
   bottomAirLock.attach(bottomAirLockPin);
-  // Sets the pins for the limit switchs 
+
+  // Sets the pins for the limit switchs
   pinMode(limitSwitchPinOne, INPUT_PULLUP);
   pinMode(limitSwitchPinTwo, INPUT_PULLUP);
   pinMode(limitSwitchPinThree, INPUT_PULLUP);
   pinMode(limitSwitchPinFour, INPUT_PULLUP);
-  pinMode(limitSwitchPinFive, INPUT_PULLUP);
-  pinMode(limitSwitchPinSix, INPUT_PULLUP);
+
+
+  pinMode(topLiftLimitSwitch, INPUT_PULLUP);
+  pinMode(bottomLiftLimitSwitch, INPUT_PULLUP);
 
 
   //attach the pipes
@@ -201,9 +223,13 @@ void setup() {
   rightPipeGateServo.write(closeGatePosition);
   midPipeGateServo.write(closeGatePosition);
   leftPipeGateServo.write(closeGatePosition);
-  screw.attach(44);
+  screw.attach(screwServoPin);
   // screwUp();
 
+  //set color system slide all the way to first limitswitch
+  colorSort.write(140);
+  while (digitalRead(limitSwitchPinTwo) != 0){}
+  colorSort.write(90);
   //bottomAirLock.write(90);
 }
 
@@ -235,6 +261,10 @@ void loop() {
   RMotor = 1500;
   LMotor = 1500;
 
+  if (digitalRead(topLiftLimitSwitch) == LOW){
+    screw.writeMicroseconds(1500);
+  }
+
   //Drive and Turn
   if (abs(drive) > 0) {
     RMotor = 1500 - 500 * drive * (1 - rightTurn);
@@ -261,42 +291,47 @@ void resetBot() {
   drive = 0;
   leftTurn = 0;
   rightTurn = 0;
+  currentPin = 0;
 
   //Stop motors
-  LMotor = 1500;
-  RMotor = 1500;
-  leftservo.writeMicroseconds(LMotor);
-  rightservo.writeMicroseconds(RMotor);
+  leftservo.writeMicroseconds(1500);
+  rightservo.writeMicroseconds(1500);
+  screw.writeMicroseconds(1500);
+
+  closeTopAirLock();
+  closeBottomAirLock();
+
+  colorSort.write(140);
+  while (digitalRead(limitSwitchPinTwo) != 0){}
+  colorSort.write(90);
+  
 }
 //Find direction and moves towards red pos until Limit Switch is Low then open and close air locks
-void toRed() { 
-    closeTopAirLock();
-  
+void toRed() {
+  closeTopAirLock();
+
   if (indexfromkey("redPin") < currentPin) {
     colorSort.write(140);
     currentPin = indexfromkey("redPin");
-  }
-  else if(indexfromkey("redPin") > currentPin) {
+  } else if (indexfromkey("redPin") > currentPin) {
     colorSort.write(40);
     currentPin = indexfromkey("redPin");
   }
 
-  
-  while(true) {
+
+  while (true) {
     if (digitalRead(redPin) == LOW) {
       colorSort.write(90);
       closeTopAirLock();
-      delay(2000);
+      delay(1000);
       openBottomAirLock();
-      delay(2000);
+      delay(1000);
       closeBottomAirLock();
       delay(1000);
       openTopAirLock();
-      delay(1000);
       //closeTopAirLock();
-      // shake();
       break;
-    } 
+    }
   }
   // colorSort.write(120);
   // while (digitalRead(redPin) == HIGH) {
@@ -311,35 +346,29 @@ void toRed() {
 //Find direction and moves towards green pos until Limit Switch is Low then open and close air locks
 
 void toGreen() {
-    closeTopAirLock();
+  closeTopAirLock();
 
   // Serial.println("inGreen");
   if (indexfromkey("greenPin") < currentPin) {
     colorSort.write(140);
     currentPin = indexfromkey("greenPin");
-  }
-  else if(indexfromkey("greenPin") > currentPin) {
+  } else if (indexfromkey("greenPin") > currentPin) {
     colorSort.write(40);
     currentPin = indexfromkey("greenPin");
   }
-  while(true)
-  {
-    if (digitalRead(greenPin) == LOW) 
-    {
+  while (true) {
+    if (digitalRead(greenPin) == LOW) {
       colorSort.write(90);
       closeTopAirLock();
-      delay(2000);
+      delay(1000);
       openBottomAirLock();
-      delay(2000);
+      delay(1000);
       closeBottomAirLock();
       delay(1000);
       openTopAirLock();
-      delay(1000);
       // closeTopAirLock();
-      // shake();
       break;
-     }
-
+    }
   }
   // colorSort.write(180);
   // while (digitalRead(greenPin) == HIGH) {
@@ -354,34 +383,28 @@ void toGreen() {
 //Find direction and moves towards blue pos until Limit Switch is Low then open and close air locks
 
 void toBlue() {
-    closeTopAirLock();
-   if (indexfromkey("bluePin") < currentPin) {
+  closeTopAirLock();
+  if (indexfromkey("bluePin") < currentPin) {
     colorSort.write(140);
     currentPin = indexfromkey("bluePin");
-  }
-  else if(indexfromkey("bluePin") > currentPin) {
+  } else if (indexfromkey("bluePin") > currentPin) {
     colorSort.write(40);
     currentPin = indexfromkey("bluePin");
   }
-  while(true)
-  {
-    if (digitalRead(bluePin) == LOW) 
-    {
+  while (true) {
+    if (digitalRead(bluePin) == LOW) {
       colorSort.write(90);
       closeTopAirLock();
-      delay(2000);
+      delay(1000);
       openBottomAirLock();
-      delay(2000);
+      delay(1000);
       closeBottomAirLock();
       delay(1000);
       openTopAirLock();
       delay(1000);
       // closeTopAirLock();
-      // shake();
       break;
-     }
-    
-
+    }
   }
   // colorSort.write(sortSpeed);
   // while (digitalRead(bluePin) == HIGH) {
@@ -396,34 +419,27 @@ void toBlue() {
 ////Find direction and moves towards yellow pos until Limit Switch is Low then open and close air locks
 
 void toYellow() {
-    closeTopAirLock();
-   if (indexfromkey("yellowPin") < currentPin) {
+  closeTopAirLock();
+  if (indexfromkey("yellowPin") < currentPin) {
     colorSort.write(140);
     currentPin = indexfromkey("yellowPin");
-  }
-  else if(indexfromkey("yellowPin") > currentPin) {
+  } else if (indexfromkey("yellowPin") > currentPin) {
     colorSort.write(40);
     currentPin = indexfromkey("yellowPin");
   }
-  while(true)
-  {
-    if (digitalRead(yellowPin) == LOW) 
-    {
+  while (true) {
+    if (digitalRead(yellowPin) == LOW) {
       colorSort.write(90);
       closeTopAirLock();
-      delay(2000);
+      delay(1000);
       openBottomAirLock();
-      delay(2000);
+      delay(1000);
       closeBottomAirLock();
       delay(1000);
       openTopAirLock();
-      delay(1000);
       // closeTopAirLock();
-      // shake();
       break;
-     }
-     
-
+    }
   }
   // while (digitalRead(yellowPin) == HIGH||limtSwitchPinOne==HIGH) {
   //   if (limtSwitchPinOne == LOW) {
@@ -507,55 +523,98 @@ void parseData(String data) {
       } else if (axis_val < 0) {
         closeClamp();
       }
-    } else {
+    } 
+    
+    else if (button_id == Right_STICK_IDY){
+      if (axis_val > 0){
+        screwDown();
+      }
+      else if (axis_val < 0){
+        screwUp();
+      }
+    }
+    else if (button_id == NEUTRAL_ID){
+      resetBot();
+    }
+    else {
       Serial.println("Err");
     }
 
   } else {
     Serial.println(data);
     // Error handling if data doesn't contain ':'
-    
+
     //Check if data is a command
-    //if data is sepColor then sets pos of colors 
+    //if data is sepColor then sets pos of colors
     if (data == "sepBlue") {
-      colorPins[0] = "bluePin";
-      colorPins[1] = "redPin";
-      colorPins[2] = "yellowPin";
-      colorPins[3] = "greenPin";
+      colorPins[0] = "redPin";
+      colorPins[1] = "yellowPin";
+      colorPins[2] = "greenPin";
+      colorPins[3] = "bluePin";
       bluePin = limitSwitchPinOne;
       redPin = limitSwitchPinTwo;
       yellowPin = limitSwitchPinThree;
       greenPin = limitSwitchPinFour;
 
+      currentPin = indexfromkey("redPin");
+
+      closeRed();
+      closeGreen();
+      closeBlue();
+      closeYellow();
+
     } else if (data == "sepRed") {
-      colorPins[0] = "redPin";
-      colorPins[1] = "bluePin";
-      colorPins[2] = "yellowPin";
-      colorPins[3] = "greenPin";
+      colorPins[0] = "bluePin";
+      colorPins[1] = "yellowPin";
+      colorPins[2] = "greenPin";
+      colorPins[3] = "redPin";
       redPin = limitSwitchPinOne;
       bluePin = limitSwitchPinTwo;
       yellowPin = limitSwitchPinThree;
       greenPin = limitSwitchPinFour;
 
+      currentPin = indexfromkey("bluePin");
+
+      closeRed();
+      closeGreen();
+      closeBlue();
+      closeYellow();
+
     } else if (data == "sepGreen") {
-      colorPins[0] = "greenPin";
-      colorPins[1] = "bluePin";
+      colorPins[0] = "bluePin";
+      colorPins[1] = "yellowPin";
       colorPins[2] = "redPin";
-      colorPins[3] = "yellowPin";
+      colorPins[3] = "greenPin";
+
+      currentPin = indexfromkey("bluePin");
+
       greenPin = limitSwitchPinOne;
       bluePin = limitSwitchPinTwo;
       yellowPin = limitSwitchPinThree;
       redPin = limitSwitchPinFour;
 
+      closeRed();
+      closeGreen();
+      closeBlue();
+      closeYellow();
+
     } else if (data == "sepYellow") {
-      colorPins[0] = "yellowPin";
-      colorPins[1] = "bluePin";
-      colorPins[2] = "redPin";
-      colorPins[3] = "greenPin";
+      colorPins[0] = "bluePin";
+      colorPins[1] = "redPin";
+      colorPins[2] = "greenPin";
+      colorPins[3] = "yellowPin";
+
+      currentPin = indexfromkey("bluePin");
+
       yellowPin = limitSwitchPinOne;
       bluePin = limitSwitchPinTwo;
       redPin = limitSwitchPinThree;
       greenPin = limitSwitchPinFour;
+
+      closeRed();
+      closeGreen();
+      closeBlue();
+      closeYellow();
 
     } else if (data == "toRed") {
       toRed();
@@ -597,31 +656,24 @@ void parseData(String data) {
     } else if (data == "closeBottomAirLock") {
       //Serial.println("closing bottom airlock");
       closeBottomAirLock();
-    } else if(data=="stopSort"){
-        Serial.println("stop sort");
+    } else if (data == "stopSort") {
+      Serial.println("stop sort");
 
-        stopSort();
+      stopSort();
 
-    }
-    else if(data="goForward")
-    {
-      goForward();     
-    }
-    else if(data="turnAround")
-    {
+    } else if (data == "goForward") {
+      goForward();
+    } else if (data == "turnAround") {
       turnAround();
-    }
-    else if(data=="screwUp")
-    {
+    } else if (data == "screwUp") {
+      Serial.println("DBWIE");
       screwUp();
-    }
-    else if(data=="screwDown")
-    {
+    } else if (data == "screwDown") {
       screwDown();
-    }
-    else if(data=="shake")
-    {
+    } else if (data == "shake") {
       shake();
+    } else if (data == "stopScrew"){
+      screw.write(1500);
     }
   }
 }
@@ -629,13 +681,13 @@ void parseData(String data) {
 void openBottom(int pin) {
   Serial.println(pin);
   if (pin == limitSwitchPinTwo) {
-    rightPipeGateServo.write(openGatePosition);
+    rightPipeGateServo.write(90);
   }
   if (pin == limitSwitchPinThree) {
-    midPipeGateServo.write(openGatePosition);
+    midPipeGateServo.write(160); //Hits right drive motor if at 180 :|
   }
   if (pin == limitSwitchPinFour) {
-    leftPipeGateServo.write(0);
+    leftPipeGateServo.write(90);
   }
 }
 //opens red pipe
@@ -657,13 +709,13 @@ void openYellow() {
 //close bottom pipes
 void closeBottom(int pin) {
   if (pin == limitSwitchPinTwo) {
-    rightPipeGateServo.write(closeGatePosition);
+    rightPipeGateServo.write(180);
   }
   if (pin == limitSwitchPinThree) {
-    midPipeGateServo.write(closeGatePosition);
+    midPipeGateServo.write(90);
   }
   if (pin == limitSwitchPinFour) {
-    leftPipeGateServo.write(closeGatePosition);
+    leftPipeGateServo.write(0);
   }
 }
 void closeRed() {
@@ -695,9 +747,8 @@ void openBottomAirLock() {
 void closeBottomAirLock() {
   bottomAirLock.write(closeLowerAirLockPosition);
 }
-//stops the colorSort servo  
-void stopSort()
-{
+//stops the colorSort servo
+void stopSort() {
   colorSort.write(90);
 }
 // gets index of elment in array
@@ -710,17 +761,15 @@ int indexfromkey(String key) {
   return -1;
 }
 // moves robot Forward
-void goForward()
-{
-  leftservo.writeMicroseconds(1200);
-  rightservo.writeMicroseconds(1200);
+void goForward() {
+  leftservo.writeMicroseconds(1700);
+  rightservo.writeMicroseconds(1700);
   delay(2000);
   leftservo.writeMicroseconds(1500);
   rightservo.writeMicroseconds(1500);
 }
-//turn robot around 
-void turnAround()
-{
+//turn robot around
+void turnAround() {
   leftservo.writeMicroseconds(1200);
   rightservo.writeMicroseconds(1800);
   delay(2000);
@@ -728,34 +777,29 @@ void turnAround()
   rightservo.writeMicroseconds(1500);
 }
 //moves screw to top
-void screwUp()
-{
-    screw.writeMicroseconds(1000);
+void screwUp() {
+  screw.writeMicroseconds(1000);
 
-    if (digitalRead(limitSwitchPinFive) == LOW) {
-          screw.writeMicroseconds(1500);
+  //while (digitalRead(topLiftLimitSwitch) != 0){}
 
-    } 
+ // screw.writeMicroseconds(1500);
 }
 // moving the screw motor down
-void screwDown()
-{
-    screw.writeMicroseconds(200);
+void screwDown() {
+  screw.writeMicroseconds(2000);
 
-    if (digitalRead(limitSwitchPinSix) == LOW) {
-          screw.writeMicroseconds(1500);
+  //while (digitalRead(topLiftLimitSwitch) != 0){}
 
-    } 
+  //screw.writeMicroseconds(1500);
 }
-//shake robot 
-void shake()
-{
+//shake robot
+void shake() {
   leftservo.writeMicroseconds(1300);
   rightservo.writeMicroseconds(1300);
   delay(500);
   leftservo.writeMicroseconds(1700);
-  rightservo.writeMicroseconds(17000);
+  rightservo.writeMicroseconds(1700);
   delay(500);
   leftservo.writeMicroseconds(1500);
-  rightservo.writeMicroseconds(1500); 
+  rightservo.writeMicroseconds(1500);
 }

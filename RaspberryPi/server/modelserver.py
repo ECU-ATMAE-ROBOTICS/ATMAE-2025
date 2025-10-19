@@ -78,7 +78,7 @@ def start_server():
     """
 
     #Alignment marker on frame
-    circle_pos = (90,360)
+    circle_pos = (180,360)
     radius = 10
 
     while True:
@@ -98,7 +98,7 @@ def start_server():
 
                         if frame is None:
                             break
-                        #frame = cv2.resize(frame, (448,448))
+                        frame = cv2.resize(frame, (448,448))
                         # Get bboxes from model
                         boxes = MODEL.predict(source=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), iou=.3, verbose=False)[0].boxes.xyxy.int().tolist()
 
@@ -107,7 +107,7 @@ def start_server():
                             colors = colordetect.get_box_colors(frame, boxes)
                             colors,boxes = colordetect.sort_bins(colors,boxes)
                             
-                            direction = direct.determine_direction(frame, boxes)
+                            direction = direct.determine_direction(frame, boxes, 180)
                             throttle = direct.determine_throttle(frame, boxes)
 
                             if throttle == "9:-1\n":

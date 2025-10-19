@@ -4,7 +4,7 @@ def clamp(n, smallest, largest):
   return max(smallest, min(n, largest))
 
 
-def determine_direction(img, boxes):
+def determine_direction(img, boxes, target_x_pos):
     """
     Determine the direction a robot should move to align with a target bin
     based on YOLO-detected bounding boxes and tape colors.
@@ -25,7 +25,6 @@ def determine_direction(img, boxes):
     target_bin = boxes[0]
 
     #Target position for off-center camera
-    target_x_pos = 90
 
     bin_height, bin_width = [target_bin[3]-target_bin[1], target_bin[2]-target_bin[0]]
     bin_center = [target_bin[3]-bin_height//2, target_bin[2]-bin_width//2]
@@ -50,12 +49,12 @@ def determine_throttle(img, boxes):
     percent_covered =  ((bin_height*bin_width)/(img_height*img_width)) * 100 #percent of image covered by bin
     print(percent_covered)
 
-    if percent_covered > 23:
+    if percent_covered > 10:
         #Stop Signal
         return f"9:-1\n"
     else:
         #Forward Signal
-        return f"9:-.6\n"
+        return f"9:0\n"
 
 
 
