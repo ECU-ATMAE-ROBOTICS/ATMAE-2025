@@ -123,16 +123,6 @@ Servo leftPipeGateServo;
 Servo sepPipeGateServo;
 
 
-
-
-//location  of  the drop points (placeholder values)
-// const int sepPos = 150;
-// const int Pos1 = 30;
-// const int Pos2 = 60;
-// const int Pos3 = 90;
-// const int centerPos = 90;
-
-
 //Airlock Servos
 Servo topAirLock;
 Servo bottomAirLock;
@@ -238,7 +228,7 @@ void setup() {
 
   //set color system slide all the way to first limitswitch
   colorSort.write(140);
- //while (digitalRead(limitSwitchPinTwo) != 0) {}
+  while (digitalRead(limitSwitchPinTwo) != 0) {}
   colorSort.write(90);
   //bottomAirLock.write(90);
 }
@@ -324,7 +314,7 @@ void resetBot() {
   
 
   colorSort.write(140);
-  //while (digitalRead(limitSwitchPinTwo) != 0) {}
+  while (digitalRead(limitSwitchPinTwo) != 0) {}
   colorSort.write(90);
 }
 //Find direction and moves towards red pos until Limit Switch is Low then open and close air locks
@@ -349,20 +339,10 @@ void toRed() {
       delay(1000);
       closeBottomAirLock();
       delay(1000);
-      openTopAirLock();
-      //closeTopAirLock();
+      //openTopAirLock();s
       break;
     }
   }
-  // colorSort.write(120);
-  // while (digitalRead(redPin) == HIGH) {
-  // }
-  // if (digitalRead(redPin) == LOW) {
-  //   colorSort.write(90);
-  //   openBottomAirLock();
-  //   delay(1000);
-  //   closeBottomAirLock();
-  // }
 }
 //Find direction and moves towards green pos until Limit Switch is Low then open and close air locks
 
@@ -391,15 +371,7 @@ void toGreen() {
       break;
     }
   }
-  // colorSort.write(180);
-  // while (digitalRead(greenPin) == HIGH) {
-  // }
-  // if (digitalRead(greenPin) == LOW) {
-  //   colorSort.write(90);
-  //   openBottomAirLock();
-  //   delay(1000);
-  //   closeBottomAirLock();
-  // }
+  
 }
 //Find direction and moves towards blue pos until Limit Switch is Low then open and close air locks
 
@@ -427,17 +399,8 @@ void toBlue() {
       break;
     }
   }
-  // colorSort.write(sortSpeed);
-  // while (digitalRead(bluePin) == HIGH) {
-  // }
-  // if (digitalRead(bluePin) == LOW) {
-  //   colorSort.write(90);
-  //   openBottomAirLock();
-  //   delay(1000);
-  //   closeBottomAirLock();
-  // }
 }
-////Find direction and moves towards yel    pos until Limit Switch is Low then open and close air locks
+////Find direction and moves towards yellow pos until Limit Switch is Low then open and close air locks
 
 void toYellow() {
   closeTopAirLock();
@@ -462,17 +425,6 @@ void toYellow() {
       break;
     }
   }
-  // while (digitalRead(yellowPin) == HIGH||limtSwitchPinOne==HIGH) {
-  //   if (limtSwitchPinOne == LOW) {
-  //      colorSort.write(80);
-  //   }
-  // }
-  // if (digitalRead(yellowPin) == LOW) {
-  //   colorSort.write(90);
-  //   openBottomAirLock();
-  //   delay(1000);
-  //   closeBottomAirLock();
-  // }
 }
 
 // opens Clamp
@@ -735,7 +687,7 @@ void openBottom(int pin) {
   }
   if(pin ==limitSwitchPinOne)
   {
-    sepPipeGateServo.write(90);
+    sepPipeGateServo.write(0);
   }
 }
 //opens red pipe
