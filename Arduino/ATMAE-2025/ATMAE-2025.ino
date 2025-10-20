@@ -111,7 +111,7 @@ Servo screw;
 const int leftPipeGate = 5;
 const int midPipeGate = 7;
 const int rightPipeGate = 4;
-const int sepPipeGate=999;
+const int sepPipeGate=8;
 //Gate Servos
 Servo rightPipeGateServo;
 Servo midPipeGateServo;
@@ -659,7 +659,7 @@ void openBottom(int pin) {
   }
   if(pin ==limitSwitchPinOne)
   {
-    sepPipeGateServo.write(0);
+    sepPipeGateServo.write(90);
   }
 }
 //opens red pipe
