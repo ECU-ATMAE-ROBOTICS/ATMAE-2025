@@ -310,6 +310,8 @@ void resetBot() {
 
   closeTopAirLock();
   closeBottomAirLock();
+  closeClamp();
+  delay(1000);
   closePaddles();
   
 
@@ -432,7 +434,7 @@ void openClamp() {
 
   if(!clampOpen){
     clamp.writeMicroseconds(1700);
-    delay(1500);
+    delay(1000);
     clamp.writeMicroseconds(1500);
 
     clampOpen = true;
@@ -444,7 +446,7 @@ void openClamp() {
 void closeClamp() {
   if(clampOpen){
     clamp.writeMicroseconds(1300);
-    delay(1500);
+    delay(2000);
     clamp.writeMicroseconds(1500);
 
     clampOpen = false;
@@ -452,13 +454,13 @@ void closeClamp() {
 }
 
 void openPaddles() {
-  leftPaddle.write(90);
-  rightPaddle.write(80);
+  leftPaddle.write(80);
+  rightPaddle.write(40);
 }
 
 void closePaddles() {
-  leftPaddle.write(80);
-  rightPaddle.write(15);
+  leftPaddle.write(15);
+  rightPaddle.write(0);
 }
 
 //Parses the instuction recieved from the Pi
