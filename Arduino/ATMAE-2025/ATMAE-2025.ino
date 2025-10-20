@@ -15,10 +15,9 @@ close at 90
 
 */
 
-#define LED_PIN 11
+// #define LED_PIN 11
 
 #include <Servo.h>
-#include <AccelStepper.h>
 
 //---PINS---
 
@@ -31,8 +30,8 @@ const int bottomLiftLimitSwitch = 1001;
 
 
 const int forkLiftPin = 44;
-const int leftPaddlePin = 11;
-const int rightPaddlePin = 12;
+const int leftPaddlePin = 12;
+const int rightPaddlePin = 11;
 const int clampPin = 13;
 
 const int topAirLockPin = 2;
@@ -44,8 +43,8 @@ const int limitSwitchPinTwo = 31;
 const int limitSwitchPinThree = 33;
 const int limitSwitchPinFour = 35;
 
-const int rightPaddle = 11;
-const int leftPaddle = 12;
+Servo rightPaddle;
+Servo leftPaddle;
 
 // ID's of controller buttons
 const int TELEOP_ID = 22;
@@ -151,6 +150,7 @@ bool screwOverRide = false;  //Used to control screw during teleop
 // Variable to hold the color being sorted
 int currentPin = 0;
 String colorPins[4];
+bool reachedTop = true;
 
 /*
 ----upperAirLock----
@@ -192,8 +192,8 @@ Runs at the start Attach to pins and servo in Startings Pos
 void setup() {
 
   Serial.begin(9600);
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, HIGH);
+  //pinMode(LED_PIN, OUTPUT);
+  //digitalWrite(LED_PIN, HIGH);
   // colorSort.write(sortSpeed);
 
   //Initialize the servos
@@ -203,6 +203,8 @@ void setup() {
   clamp.attach(clampPin);
   topAirLock.attach(topAirLockPin);
   bottomAirLock.attach(bottomAirLockPin);
+  leftPaddle.attach(leftPaddlePin);
+  rightPaddle.attach(rightPaddlePin);
 
   // Sets the pins for the limit switchs
   pinMode(limitSwitchPinOne, INPUT_PULLUP);
@@ -230,7 +232,7 @@ void setup() {
 
   //set color system slide all the way to first limitswitch
   colorSort.write(140);
-  while (digitalRead(limitSwitchPinTwo) != 0) {}
+ //while (digitalRead(limitSwitchPinTwo) != 0) {}
   colorSort.write(90);
   //bottomAirLock.write(90);
 }
@@ -264,8 +266,8 @@ void loop() {
   LMotor = 1500;
 
 
-  bool reachedTop = true;
-  if (digitalRead(topLiftLimitSwitch) == LOW and not reachedTop) {
+  
+  if ((digitalRead(topLiftLimitSwitch) == 0) && (reachedTop == true)) {
     screw.writeMicroseconds(1500);
     reachedTop = false;
   }
@@ -305,9 +307,11 @@ void resetBot() {
 
   closeTopAirLock();
   closeBottomAirLock();
+  closePaddles();
+  
 
   colorSort.write(140);
-  while (digitalRead(limitSwitchPinTwo) != 0) {}
+  //while (digitalRead(limitSwitchPinTwo) != 0) {}
   colorSort.write(90);
 }
 //Find direction and moves towards red pos until Limit Switch is Low then open and close air locks
@@ -468,8 +472,15 @@ void closeClamp() {
   clamp.writeMicroseconds(clampClosePos);
 }
 
+void openPaddles() {
+  leftPaddle.write(90);
+  rightPaddle.write(80);
+}
 
-
+void closePaddles() {
+  leftPaddle.write(80);
+  rightPaddle.write(15);
+}
 
 //Parses the instuction recieved from the Pi
 void parseData(String data) {
@@ -669,7 +680,6 @@ void parseData(String data) {
     } else if (data == "turnAround") {
       turnAround();
     } else if (data == "screwUp") {
-      Serial.println("DBWIE");
       screwUp();
     } else if (data == "screwDown") {
       screwDown();
@@ -677,6 +687,10 @@ void parseData(String data) {
       shake();
     } else if (data == "screwStop") {
       screw.writeMicroseconds(1500);
+    } else if (data == "closePaddles") {
+      closePaddles();
+    } else if (data == "openPaddles") {
+      openPaddles();
     }
   }
 }
@@ -793,14 +807,16 @@ void screwUp() {
   //while (digitalRead(topLiftLimitSwitch) != 0){}
 
   // screw.writeMicroseconds(1500);
+  reachedTop = true;
 }
 // moving the screw motor down
 void screwDown() {
   screw.writeMicroseconds(2000);
 
   //while (digitalRead(topLiftLimitSwitch) != 0){}
-
+  delay(2000);
   //screw.writeMicroseconds(1500);
+  reachedTop = true;
 }
 //shake robot
 void shake() {
