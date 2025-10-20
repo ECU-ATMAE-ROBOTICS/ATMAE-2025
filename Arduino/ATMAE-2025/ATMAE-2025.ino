@@ -26,7 +26,7 @@ const int leftDriveMotorPin = 10;
 
 const int screwServoPin = 44;
 const int topLiftLimitSwitch = 52;
-const int bottomLiftLimitSwitch = 1001;
+const int bottomLiftLimitSwitch = 39;
 
 
 const int forkLiftPin = 44;
@@ -151,7 +151,7 @@ bool screwOverRide = false;  //Used to control screw during teleop
 int currentPin = 0;
 String colorPins[4];
 bool reachedTop = true;
-
+bool reachedBottom = true;
 /*
 ----upperAirLock----
 Pin = 2
@@ -268,6 +268,11 @@ void loop() {
 
   
   if ((digitalRead(topLiftLimitSwitch) == 0) && (reachedTop == true)) {
+    screw.writeMicroseconds(1500);
+    reachedTop = false;
+  }
+
+  if ((digitalRead(bottomLiftLimitSwitch) == 0) && (reachedBottom == true)) {
     screw.writeMicroseconds(1500);
     reachedTop = false;
   }
@@ -804,18 +809,18 @@ void turnAround() {
 //moves screw to top
 void screwUp() {
   screw.writeMicroseconds(1000);
-  //while (digitalRead(topLiftLimitSwitch) != 0){}
-
-  // screw.writeMicroseconds(1500);
+  
   reachedTop = true;
+  delay(1000);
+  reachedBottom = true;
 }
 // moving the screw motor down
 void screwDown() {
   screw.writeMicroseconds(2000);
 
-  //while (digitalRead(topLiftLimitSwitch) != 0){}
-  delay(2000);
-  //screw.writeMicroseconds(1500);
+  reachedBottom = true;
+  delay(1000);
+
   reachedTop = true;
 }
 //shake robot
