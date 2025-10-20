@@ -339,7 +339,7 @@ void toRed() {
       delay(1000);
       closeBottomAirLock();
       delay(1000);
-      //openTopAirLock();s
+      openTopAirLock();
       break;
     }
   }
@@ -394,7 +394,7 @@ void toBlue() {
       closeBottomAirLock();
       delay(1000);
       openTopAirLock();
-      delay(1000);
+      //delay(1000);
       // closeTopAirLock();
       break;
     }
