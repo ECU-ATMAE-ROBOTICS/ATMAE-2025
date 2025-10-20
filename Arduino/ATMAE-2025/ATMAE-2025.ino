@@ -80,14 +80,18 @@ double RMotor = 1500;
 
 bool Auto = false;
 
+bool clampOpen = false;
+
+bool screwStopped = true;
+
+
 //Motor Servo
 Servo leftservo;
 Servo rightservo;
 
 //clamp code
 Servo clamp;
-const int clampOpenPos = 1800;
-const int clampClosePos = 1300;
+
 
 // Defines  the Smart Servo Sorting that move the color sorter
 Servo colorSort;
@@ -152,6 +156,8 @@ int currentPin = 0;
 String colorPins[4];
 bool reachedTop = true;
 bool reachedBottom = true;
+
+
 /*
 ----upperAirLock----
 Pin = 2
@@ -266,15 +272,17 @@ void loop() {
   LMotor = 1500;
 
 
-  
-  if ((digitalRead(topLiftLimitSwitch) == 0) && (reachedTop == true)) {
+
+  if ((digitalRead(topLiftLimitSwitch) == 0) && (reachedTop)) {
     screw.writeMicroseconds(1500);
     reachedTop = false;
+    screwStopped = true;
   }
 
-  if ((digitalRead(bottomLiftLimitSwitch) == 0) && (reachedBottom == true)) {
+  if ((digitalRead(bottomLiftLimitSwitch) == 0) && (reachedBottom)) {
     screw.writeMicroseconds(1500);
     reachedTop = false;
+    screwStopped = true;
   }
 
   //Drive and Turn
@@ -469,12 +477,26 @@ void toYellow() {
 
 // opens Clamp
 void openClamp() {
-  clamp.writeMicroseconds(clampOpenPos);
+
+  if(!clampOpen){
+    clamp.writeMicroseconds(1700);
+    delay(1500);
+    clamp.writeMicroseconds(1500);
+
+    clampOpen = true;
+  }
+
 }
 //close Clamp
 
 void closeClamp() {
-  clamp.writeMicroseconds(clampClosePos);
+  if(clampOpen){
+    clamp.writeMicroseconds(1300);
+    delay(1500);
+    clamp.writeMicroseconds(1500);
+
+    clampOpen = false;
+  }
 }
 
 void openPaddles() {
@@ -690,7 +712,7 @@ void parseData(String data) {
       screwDown();
     } else if (data == "shake") {
       shake();
-    } else if (data == "screwStop") {
+    } else if (data == "stopScrew") {
       screw.writeMicroseconds(1500);
     } else if (data == "closePaddles") {
       closePaddles();
@@ -808,8 +830,8 @@ void turnAround() {
 }
 //moves screw to top
 void screwUp() {
-  screw.writeMicroseconds(1000);
-  
+    screw.writeMicroseconds(1000);
+
   reachedTop = true;
   delay(1000);
   reachedBottom = true;
