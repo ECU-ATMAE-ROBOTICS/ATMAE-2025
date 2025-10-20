@@ -326,7 +326,7 @@ void toRed() {
       delay(1000);
       closeBottomAirLock();
       delay(1000);
-      openTopAirLock();s
+      //openTopAirLock();s
       break;
     }
   }
@@ -354,6 +354,7 @@ void toGreen() {
       closeBottomAirLock();
       delay(1000);
       openTopAirLock();
+      // closeTopAirLock();
       break;
     }
   }
@@ -659,7 +660,7 @@ void openBottom(int pin) {
   }
   if(pin ==limitSwitchPinOne)
   {
-    sepPipeGateServo.write(90);
+    sepPipeGateServo.write(0);
   }
 }
 //opens red pipe
@@ -757,7 +758,6 @@ void screwUp() {
   screw.writeMicroseconds(1000);
 
 
-  // screw.writeMicroseconds(1500);
   reachedTop = true;
 }
 // moving the screw motor down
@@ -766,7 +766,6 @@ void screwDown() {
 
   
   delay(1000);
-  //screw.writeMicroseconds(1500);
   reachedTop = true;
 }
 //shake robot
