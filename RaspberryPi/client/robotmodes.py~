@@ -360,12 +360,12 @@ def internal_sort_mode(arduino):
                    break
                color = colordetect.detect_color(img)
         else:
-            strikes += 1
+            #strikes += 1
         
-            if strikes == 5:
-                logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| No balls detected, stopping")
-                return
-            logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| No ball strike count: {strikes}")
+            #if strikes == 5:
+            #    logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| No balls detected, stopping")
+             #   return
+            #logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| No ball strike count: {strikes}")
             arduino.write("shake\n".encode("utf-8"))
             time.sleep(2)
             print("Seeing black")

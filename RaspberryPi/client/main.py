@@ -73,7 +73,6 @@ try:
 
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Serial testing successfull! Message from arduino: {arduino.readline().rstrip()}")
 
-            arduino.write("23:0\n".encode("utf-8")) #Init the bot
 
 
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}|Determining color to separate")
@@ -109,6 +108,10 @@ try:
 
             arduino.write(color_instructions[color_saved].encode("UTF-8"))
             logger.info(f"|{datetime.now().strftime('%H:%M:%S')}| Sent color instruction: {color_instructions[color_saved]}")
+
+            time.sleep(.3)
+
+            arduino.write("closeTopAirLock\n".encode("utf-8"))
 
             while True:
                 #Select robot mode
