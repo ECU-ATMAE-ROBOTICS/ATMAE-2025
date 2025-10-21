@@ -142,7 +142,7 @@ double RightStick = 0;
 bool screwOverRide = false;  //Used to control screw during teleop
 
 // Variable to hold the color being sorted
-int currentPin = 0;
+int currentPin = 1;
 String colorPins[4];
 bool reachedTop = true;
 bool reachedBottom = true;
@@ -230,7 +230,13 @@ void setup() {
   colorSort.write(140);
   while (digitalRead(limitSwitchPinTwo) != 0) {}
   colorSort.write(90);
+
+  colorSort.write(40);
+  while (digitalRead(limitSwitchPinFour) != 0) {}
+  colorSort.write(90);
+
   //bottomAirLock.write(90);
+  closePaddles();
 }
 
 /*
@@ -301,7 +307,7 @@ void resetBot() {
   drive = 0;
   leftTurn = 0;
   rightTurn = 0;
-  currentPin = 0;
+  currentPin = 1;
 
   //Stop motors
   leftservo.writeMicroseconds(1500);
@@ -313,10 +319,15 @@ void resetBot() {
   closeClamp();
   delay(1000);
   closePaddles();
+  //openPaddles();
   
 
   colorSort.write(140);
   while (digitalRead(limitSwitchPinTwo) != 0) {}
+  colorSort.write(90);
+
+  colorSort.write(40);
+  while (digitalRead(limitSwitchPinFour) != 0) {}
   colorSort.write(90);
 }
 //Find direction and moves towards red pos until Limit Switch is Low then open and close air locks
@@ -454,12 +465,12 @@ void closeClamp() {
 }
 
 void openPaddles() {
-  leftPaddle.write(80);
-  rightPaddle.write(40);
+  leftPaddle.write(90);
+  rightPaddle.write(90);
 }
 
 void closePaddles() {
-  leftPaddle.write(15);
+  leftPaddle.write(0);
   rightPaddle.write(0);
 }
 
@@ -514,6 +525,7 @@ void parseData(String data) {
     }
     //Clamp Movement
     else if (button_id == Right_STICK_IDX) {
+      openPaddles();
       if (axis_val > 0) {
         openClamp();
       } else if (axis_val < 0) {
@@ -549,7 +561,7 @@ void parseData(String data) {
       yellowPin = limitSwitchPinThree;
       greenPin = limitSwitchPinFour;
 
-      currentPin = indexfromkey("redPin");
+      currentPin = indexfromkey("yellowPin");
 
       closeRed();
       closeGreen();
@@ -566,7 +578,7 @@ void parseData(String data) {
       yellowPin = limitSwitchPinThree;
       greenPin = limitSwitchPinFour;
 
-      currentPin = indexfromkey("bluePin");
+      currentPin = indexfromkey("yellowPin");
 
       closeRed();
       closeGreen();
@@ -579,7 +591,7 @@ void parseData(String data) {
       colorPins[2] = "redPin";
       colorPins[3] = "greenPin";
 
-      currentPin = indexfromkey("bluePin");
+      currentPin = indexfromkey("yellowPin");
 
       greenPin = limitSwitchPinOne;
       bluePin = limitSwitchPinTwo;
@@ -597,7 +609,7 @@ void parseData(String data) {
       colorPins[2] = "greenPin";
       colorPins[3] = "yellowPin";
 
-      currentPin = indexfromkey("bluePin");
+      currentPin = indexfromkey("redPin");
 
       yellowPin = limitSwitchPinOne;
       bluePin = limitSwitchPinTwo;
@@ -747,7 +759,7 @@ void closeTopAirLock() {
 //opens bottom air lock
 
 void openBottomAirLock() {
-  bottomAirLock.write(openLowerAirLockPosition);
+  bottomAirLock.write(180);
 }
 //close bottom air lock
 void closeBottomAirLock() {
