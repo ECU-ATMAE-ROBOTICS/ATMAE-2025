@@ -482,12 +482,12 @@ void closeClamp() {
 
 void openPaddles() {
   leftPaddle.write(85);
-  rightPaddle.write(85);
+  rightPaddle.write(125);
 }
-
+ 
 void closePaddles() {
-  leftPaddle.write(5);
-  rightPaddle.write(5);
+  leftPaddle.write(0);
+  rightPaddle.write(30);
 }
 
 //Parses the instuction recieved from the Pi
