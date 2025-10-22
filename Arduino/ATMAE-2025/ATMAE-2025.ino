@@ -83,6 +83,7 @@ bool clampOpen = false;
 bool screwStopped = true;
 
 
+
 //Motor Servo
 Servo leftservo;
 Servo rightservo;
@@ -144,8 +145,8 @@ int currentPin = 1;
 String colorPins[4];
 bool reachedTop = true;
 bool reachedBottom = true;
-
-
+bool innitPosRed = true;
+bool innitPosYel = true;
 /*
 ----upperAirLock----
 Pin = 2
@@ -340,10 +341,15 @@ void toRed() {
     colorSort.write(40);
     currentPin = indexfromkey("redPin");
   }
+  else if (currentPin == indexfromkey("redPin")){
+    //innitPos = true;
+  }
 
 
   while (true) {
-    if (digitalRead(redPin) == LOW) {
+    Serial.println(digitalRead(redPin));
+    if (digitalRead(redPin) == LOW or innitPosRed == true) {
+      innitPosYel = false;
       colorSort.write(90);
       closeTopAirLock();
       delay(1000);
@@ -369,8 +375,13 @@ void toGreen() {
     colorSort.write(40);
     currentPin = indexfromkey("greenPin");
   }
+  else if (currentPin == indexfromkey("greenPin")){
+    //innitPos = true;
+  }
   while (true) {
     if (digitalRead(greenPin) == LOW) {
+      innitPosRed = false;
+      innitPosYel = false;
       colorSort.write(90);
       closeTopAirLock();
       delay(1000);
@@ -396,8 +407,13 @@ void toBlue() {
     colorSort.write(40);
     currentPin = indexfromkey("bluePin");
   }
+  else if (currentPin == indexfromkey("bluePin")){
+    //innitPos = true;
+  }
   while (true) {
     if (digitalRead(bluePin) == LOW) {
+      innitPosRed = false;
+      innitPosYel = false;
       colorSort.write(90);
       closeTopAirLock();
       delay(1000);
@@ -423,8 +439,13 @@ void toYellow() {
     colorSort.write(40);
     currentPin = indexfromkey("yellowPin");
   }
+  else if (currentPin == indexfromkey("yellowPin")){
+    //innitPos = true;
+  }
   while (true) {
-    if (digitalRead(yellowPin) == LOW) {
+    
+    if ((digitalRead(yellowPin) == LOW) or innitPosYel == true) {     
+      innitPosRed = false;
       colorSort.write(90);
       closeTopAirLock();
       delay(1000);
