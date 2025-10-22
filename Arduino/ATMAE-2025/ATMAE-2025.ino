@@ -443,9 +443,7 @@ void toYellow() {
 void openClamp() {
 
   if(!clampOpen){
-    clamp.writeMicroseconds(1700);
-    delay(1000);
-    clamp.writeMicroseconds(1500);
+    clamp.write(180);
 
     clampOpen = true;
   }
@@ -455,9 +453,7 @@ void openClamp() {
 
 void closeClamp() {
   if(clampOpen){
-    clamp.writeMicroseconds(1300);
-    delay(2000);
-    clamp.writeMicroseconds(1500);
+    clamp.write(0);
 
     clampOpen = false;
   }
