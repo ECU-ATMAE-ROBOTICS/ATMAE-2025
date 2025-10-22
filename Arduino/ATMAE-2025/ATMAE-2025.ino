@@ -21,18 +21,16 @@ close at 90
 
 //---PINS---
 
-const int rightDriveMotorPin = 9;
-const int leftDriveMotorPin = 10;
+const int rightDriveMotorPin = 10;
+const int leftDriveMotorPin = 13;
 
 const int screwServoPin = 44;
 const int topLiftLimitSwitch = 52;
 const int bottomLiftLimitSwitch = 39;
 
-
-const int forkLiftPin = 44;
-const int leftPaddlePin = 12;
-const int rightPaddlePin = 11;
-const int clampPin = 13;
+const int leftPaddlePin = 11;
+const int rightPaddlePin = 9;
+const int clampPin = 12;
 
 const int topAirLockPin = 2;
 const int bottomAirLockPin = 3;
@@ -201,6 +199,8 @@ void setup() {
   bottomAirLock.attach(bottomAirLockPin);
   leftPaddle.attach(leftPaddlePin);
   rightPaddle.attach(rightPaddlePin);
+  sepPipeGateServo.attach(sepPipeGate);
+  screw.attach(screwServoPin);
 
   // Sets the pins for the limit switchs
   pinMode(limitSwitchPinOne, INPUT_PULLUP);
@@ -222,10 +222,9 @@ void setup() {
   rightPipeGateServo.write(closeGatePosition);
   midPipeGateServo.write(closeGatePosition);
   leftPipeGateServo.write(closeGatePosition);
-  screw.attach(screwServoPin);
-  sepPipeGateServo.attach(sepPipeGate);
-  // screwUp();
 
+  // screwUp();
+  delay(2000);
   //set color system slide all the way to first limitswitch
   colorSort.write(140);
   while (digitalRead(limitSwitchPinTwo) != 0) {}
@@ -465,13 +464,13 @@ void closeClamp() {
 }
 
 void openPaddles() {
-  leftPaddle.write(90);
-  rightPaddle.write(90);
+  leftPaddle.write(95);
+  rightPaddle.write(115);
 }
 
 void closePaddles() {
-  leftPaddle.write(0);
-  rightPaddle.write(0);
+  leftPaddle.write(5);
+  rightPaddle.write(8);
 }
 
 //Parses the instuction recieved from the Pi
@@ -701,7 +700,7 @@ void openBottom(int pin) {
   }
   if(pin ==limitSwitchPinOne)
   {
-    sepPipeGateServo.write(0);
+    sepPipeGateServo.write(90);
   }
 }
 //opens red pipe
@@ -723,17 +722,17 @@ void openYellow() {
 //close bottom pipes
 void closeBottom(int pin) {
   if (pin == limitSwitchPinTwo) {
-    rightPipeGateServo.write(180);
+    rightPipeGateServo.write(175);
   }
   if (pin == limitSwitchPinThree) {
-    midPipeGateServo.write(90);
+    midPipeGateServo.write(75);
   }
   if (pin == limitSwitchPinFour) {
     leftPipeGateServo.write(0);
   }
   if(pin ==limitSwitchPinOne)
   {
-    sepPipeGateServo.write(180);
+    sepPipeGateServo.write(160);
   }
 }
 void closeRed() {
@@ -750,11 +749,11 @@ void closeYellow() {
 }
 //opens top air lock
 void openTopAirLock() {
-  topAirLock.write(openTopAirLockPosition);
+  topAirLock.write(90);
 }
 //close top air lock
 void closeTopAirLock() {
-  topAirLock.write(closeTopAirLockPosition);
+  topAirLock.write(180);
 }
 //opens bottom air lock
 
@@ -763,7 +762,7 @@ void openBottomAirLock() {
 }
 //close bottom air lock
 void closeBottomAirLock() {
-  bottomAirLock.write(closeLowerAirLockPosition);
+  bottomAirLock.write(90);
 }
 //stops the colorSort servo
 void stopSort() {
