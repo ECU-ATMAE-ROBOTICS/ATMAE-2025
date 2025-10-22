@@ -145,8 +145,8 @@ int currentPin = 1;
 String colorPins[4];
 bool reachedTop = true;
 bool reachedBottom = true;
-bool innitPosRed = true;
-bool innitPosYel = true;
+bool innitPosRed = false;
+bool innitPosYel = false;
 /*
 ----upperAirLock----
 Pin = 2
@@ -218,7 +218,7 @@ void setup() {
   rightPipeGateServo.attach(rightPipeGate);
   midPipeGateServo.attach(midPipeGate);
   leftPipeGateServo.attach(leftPipeGate);
-  openTopAirLock();
+  closeTopAirLock();
   closeBottomAirLock();
   rightPipeGateServo.write(closeGatePosition);
   midPipeGateServo.write(closeGatePosition);
@@ -332,6 +332,7 @@ void resetBot() {
 }
 //Find direction and moves towards red pos until Limit Switch is Low then open and close air locks
 void toRed() {
+  
   closeTopAirLock();
 
   if (indexfromkey("redPin") < currentPin) {
@@ -342,12 +343,12 @@ void toRed() {
     currentPin = indexfromkey("redPin");
   }
   else if (currentPin == indexfromkey("redPin")){
-    //innitPos = true;
+    innitPosRed = true;
   }
 
 
   while (true) {
-    Serial.println(digitalRead(redPin));
+    //Serial.println(digitalRead(redPin));
     if (digitalRead(redPin) == LOW or innitPosRed == true) {
       innitPosYel = false;
       colorSort.write(90);
@@ -367,7 +368,7 @@ void toRed() {
 void toGreen() {
   closeTopAirLock();
 
-  // Serial.println("inGreen");
+  // //Serial.println("inGreen");
   if (indexfromkey("greenPin") < currentPin) {
     colorSort.write(140);
     currentPin = indexfromkey("greenPin");
@@ -440,7 +441,7 @@ void toYellow() {
     currentPin = indexfromkey("yellowPin");
   }
   else if (currentPin == indexfromkey("yellowPin")){
-    //innitPos = true;
+    innitPosYel = true;
   }
   while (true) {
     
@@ -492,7 +493,7 @@ void closePaddles() {
 
 //Parses the instuction recieved from the Pi
 void parseData(String data) {
-  //Serial.println(data);
+  ////Serial.println(data);
   int splitIndex = data.indexOf(':');  // Find where the ';' is
   if (splitIndex != -1) {              // Ensure ';' exists in the data
     String buttonStr = data.substring(0, splitIndex);
@@ -668,19 +669,19 @@ void parseData(String data) {
     } else if (data == "closeYellow") {
       closeYellow();
     } else if (data == "openTopAirLock") {
-      //Serial.println("Opening top airlock");
+      ////Serial.println("Opening top airlock");
       openTopAirLock();
     } else if (data == "openBottomAirLock") {
-      //Serial.println("Opening bottom airlock");
+      ////Serial.println("Opening bottom airlock");
       openBottomAirLock();
     } else if (data == "closeTopAirLock") {
-      //Serial.println("closing top airlock");
+      ////Serial.println("closing top airlock");
       closeTopAirLock();
     } else if (data == "closeBottomAirLock") {
-      //Serial.println("closing bottom airlock");
+      ////Serial.println("closing bottom airlock");
       closeBottomAirLock();
     } else if (data == "stopSort") {
-      Serial.println("stop sort");
+      //Serial.println("stop sort");
 
       stopSort();
 
@@ -705,7 +706,7 @@ void parseData(String data) {
 }
 //open all the pipes
 void openBottom(int pin) {
-  Serial.println(pin);
+  //Serial.println(pin);
   if (pin == limitSwitchPinTwo) {
     rightPipeGateServo.write(90);
   }
