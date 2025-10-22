@@ -198,8 +198,8 @@ void setup() {
   clamp.attach(clampPin);
   topAirLock.attach(topAirLockPin);
   bottomAirLock.attach(bottomAirLockPin);
-  leftPaddle.attach(leftPaddlePin);
-  rightPaddle.attach(rightPaddlePin);
+  //leftPaddle.attach(leftPaddlePin);
+  //rightPaddle.attach(rightPaddlePin);
   sepPipeGateServo.attach(sepPipeGate);
   screw.attach(screwServoPin);
 
