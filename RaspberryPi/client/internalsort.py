@@ -1,7 +1,6 @@
-import RaspberryPi.client.colordetect as colordetect
+import colordetect
 import cv2
 
-ball_count = 0
 
 
 def internal_sort(frame):
@@ -15,8 +14,12 @@ def internal_sort(frame):
             str | None: Serial instruction for Arduino, or #TODO alternate jiggle/shake mode to dislodge stuck balls
         """
 
+        
+        ball_count = 0
+
         color = colordetect.detect_color(frame)
-        colors = {"blue" : 1,
+        colors = {"black" : 0,
+                  "blue" : 1,
                   "red" : 2,
                   "green" : 3,
                   "yellow" : 4
@@ -24,7 +27,7 @@ def internal_sort(frame):
 
         if color is not None and ball_count != 12:
             ball_count += 1
-            return colors[color]
+            return color
         elif ball_count != 12:
             return 5
 

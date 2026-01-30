@@ -11,7 +11,9 @@ import direct
 HOST = ''  # Listen on all interfaces
 PORT = 9999
 
-MODEL = YOLO(r'RaspberryPi\server\best.pt')
+BOX_MODEL = r'RaspberryPi\server\best.pt'
+CARTON_MODEL = r'tbd'
+MODEL = YOLO(r'C:\Users\lozan\OneDrive\Documents\ATMAE\ATMAE-2025\RaspberryPi\server\best.pt')
 
 def receive_frame(conn):
 
@@ -75,6 +77,10 @@ def start_server():
         None
     """
 
+    #Alignment marker on frame
+    circle_pos = (180,360)
+    radius = 10
+
     while True:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
@@ -92,26 +98,31 @@ def start_server():
 
                         if frame is None:
                             break
-                        #frame = cv2.resize(frame, (448,448))
+                        frame = cv2.resize(frame, (448,448))
                         # Get bboxes from model
-                        boxes= MODEL.predict(source=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), iou=.3, verbose=False)[0].boxes.xyxy.int().tolist()
+                        boxes = MODEL.predict(source=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), iou=.3, verbose=False)[0].boxes.xyxy.int().tolist()
 
                         if len(boxes) > 0:
                             # Get colors from bins and sort bins from left to right
                             colors = colordetect.get_box_colors(frame, boxes)
                             colors,boxes = colordetect.sort_bins(colors,boxes)
                             
-                            direction = direct.determine_direction(frame, boxes)
+                            direction = direct.determine_direction(frame, boxes, 180)
                             throttle = direct.determine_throttle(frame, boxes)
 
+                            if throttle == "9:-1\n":
+                                print("switching to bin model")
+                                pass
+
                             messages = f"{direction}|{throttle}"
+                            print(messages)
                         
                         # Comment this out if you dont need visualization
                             for indx, box in enumerate(boxes):
                                 cv2.rectangle(frame, box[:2], box[2:], (0,0,255), 2)
                             
                             frame = cv2.putText(frame, messages, (20,60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
-                        
+                            frame = cv2.circle(frame, circle_pos, radius,(0, 0, 255), 2)
 
                         # Display the received frame
                         cv2.imshow("Live Feed", frame)
@@ -119,9 +130,12 @@ def start_server():
                             break
                         
                         #print(fr"{messages}")
+                        
                         conn.sendall(messages.encode())
+                        messages = ''
                 cv2.destroyAllWindows()
                 print("[SERVER] Connection closed.")
+                print("switching to carton model...\n")
             except KeyboardInterrupt:
                 s.close()
                 exit()

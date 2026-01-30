@@ -1,6 +1,10 @@
 import math
 
-def determine_direction(img, boxes):
+def clamp(n, smallest, largest):
+  return max(smallest, min(n, largest))
+
+
+def determine_direction(img, boxes, target_x_pos):
     """
     Determine the direction a robot should move to align with a target bin
     based on YOLO-detected bounding boxes and tape colors.
@@ -20,15 +24,13 @@ def determine_direction(img, boxes):
     img_center = [img_height//2, img_width//2]
     target_bin = boxes[0]
 
+    #Target position for off-center camera
+
     bin_height, bin_width = [target_bin[3]-target_bin[1], target_bin[2]-target_bin[0]]
     bin_center = [target_bin[3]-bin_height//2, target_bin[2]-bin_width//2]
 
-    amount_to_turn = (bin_center[1]/img_center[1] -1)
-
-    #Account for right drift
-    if amount_to_turn > 0:
-        amount_to_turn = 1
-
+    #amount_to_turn = (bin_center[1]/img_center[1] -1)
+    amount_to_turn = clamp(bin_center[1]/target_x_pos -1, -1, 1)
     turn = f"5:{amount_to_turn:.2f}\n" # Turn
     
     return turn
@@ -40,16 +42,19 @@ def determine_throttle(img, boxes):
     img_center = [img_height//2, img_width//2]
     target_bin = boxes[0]
 
+    #xyxy
     bin_height, bin_width = [target_bin[3]-target_bin[1], target_bin[2]-target_bin[0]]
     bin_center = [target_bin[3]-bin_height//2, target_bin[2]-bin_width//2]
 
-    percent_covered =  ((bin_height*2 + bin_width*2)/(img_height*2 + img_width*2)) * 100 #percent of image covered by bin
+    percent_covered =  ((bin_height*bin_width)/(img_height*img_width)) * 100 #percent of image covered by bin
     print(percent_covered)
 
-    if percent_covered > 23:
+    if percent_covered > 10:
+        #Stop Signal
         return f"9:-1\n"
     else:
-        return f"9:-.6\n"
+        #Forward Signal
+        return f"9:0\n"
 
 
 

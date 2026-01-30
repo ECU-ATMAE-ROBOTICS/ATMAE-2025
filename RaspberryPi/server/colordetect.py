@@ -53,12 +53,12 @@ def detect_color(img):
 
     color_ranges = {
     'red': [
-        ((0, 190, 50), (15, 255, 255)),      # Lower red
+        ((0, 190, 50), (10, 255, 255)),      # Lower red
         ((140, 190, 50), (180, 255, 255))    # Upper red
     ],
-    'green': [((35, 15, 30), (96, 255, 255))],
-    'blue':  [((93, 200, 15), (125, 255, 255))],
-    'yellow':[((16, 130, 70), (40, 255, 255))],
+    'green': [((41, 20, 5), (93, 255, 255))],
+    'blue':  [((90, 200, 15), (125, 255, 255))],
+    'yellow':[((13, 130, 70), (40, 255, 255))],
     }
 
     # Store pixel counts for each color
@@ -83,13 +83,12 @@ def detect_color(img):
     detected_color = max(color_pixel_counts, key=lambda c: color_pixel_counts[c][0])
     
     # Return black if the highest color doesnt take up 70% of the image
-    if color_pixel_counts[detected_color][0]/pixel_count < .40:
+    if color_pixel_counts[detected_color][0]/pixel_count < .70:
         return "black"
 
     mask = color_pixel_counts[detected_color][1]
     result = cv2.bitwise_and(img, img, mask=mask)
 
-    #cv2.imwrite(rf"C:\Users\lozan\OneDrive\Desktop\ATMAE-2025\ATMAE-2025\RaspberryPi\yolo_detections\{detected_color}\{random.randint(0,100)}.jpg", result)
     return detected_color
 
 
