@@ -48,35 +48,46 @@ def detect_color(img):
     Returns:
         str: The detected color label ('red', 'green', 'blue', 'yellow').
     """
-    
-    frame = picam2.capture_array()
-        
-    average = cv2.mean(frame)
-    average = np.array([[average]], dtype=np.uint8)
-    cv2.imshow("Average", average)
-    #print(average)
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     
 
-    
     color_ranges = {
-    'red': [((0, 0, 120), (209, 73, 255))],
-    'blue':  [((100, 0, 0), (255, 100, 33))],
-    'green': [((0, 50, 0), (233, 255, 100))],
-    'yellow':[((0, 128, 115), (241, 255, 221))],
+    'red': [
+        ((0, 190, 50), (15, 255, 255)),      # Lower red
+        ((140, 190, 50), (180, 255, 255))    # Upper red
+    ],
+    'green': [((35, 15, 30), (96, 255, 255))],
+    'blue':  [((93, 200, 15), (125, 255, 255))],
+    'yellow':[((16, 130, 70), (40, 255, 255))],
     }
-    
-    detected_color = "black"
 
-    # NEW METHOD
+    # Store pixel counts for each color
+    color_pixel_counts = {}
+
+    #Amount of pixels in image
+    pixel_count = img.shape[0] * img.shape[1]
+
+    # Generate masks and count non-zero pixels
     for color, ranges in color_ranges.items():
-        if detected_color != "black":
-            break
-        for group in ranges:
-            if(cv2.inRange(average, group[0], group[1])):
-                detected_color = color
-                break 
-                
-    print("Detected Color: ", detected_color)
+        mask = None
+        for lower, upper in ranges:
+            lower_np = np.array(lower, dtype=np.uint8)
+            upper_np = np.array(upper, dtype=np.uint8)
+            current_mask = cv2.inRange(hsv, lower_np, upper_np)
+            mask = current_mask if mask is None else cv2.bitwise_or(mask, current_mask)
+    
+        count = cv2.countNonZero(mask)
+        color_pixel_counts[color] = (count, mask)
+
+    # Find the most likely tape color
+    detected_color = max(color_pixel_counts, key=lambda c: color_pixel_counts[c][0])
+    
+    # Return black if the highest color doesnt take up 70% of the image
+    if color_pixel_counts[detected_color][0]/pixel_count < .40:
+        return "black"
+
+    mask = color_pixel_counts[detected_color][1]
+    result = cv2.bitwise_and(img, img, mask=mask)
 
     return detected_color
 

@@ -9,7 +9,7 @@ import colordetect
 from picamera2 import Picamera2
 from collections import Counter
 
-SERVER_IP = '192.168.0.227'  # Change to the IP of the server
+SERVER_IP = '192.168.0.116'  # Change to the IP of the server
 PORT = 9999
 
 logger = logging.getLogger(__name__)
