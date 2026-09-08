@@ -14,6 +14,7 @@ Color detect sometimes sees incorrect ball colors.
 - Use the test files found on the Pi's code base (not listed in this repo) to test color detect
 - If incorrectness can be observed, use the `test_hsv.py` script to get the HSV values of the image
 - Update the ranges found in `colordetect.py` based on the HSV values
+- There are some python test scripts that are only on the pi that aren't on this repo. Connect the pi to a monitor and to the ecu wifi so we can have those saved in the cloud.
 
 ---
 
