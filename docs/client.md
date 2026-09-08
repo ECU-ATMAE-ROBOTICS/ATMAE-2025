@@ -17,7 +17,6 @@ The client module (`RaspberryPi/client/`) runs on the Raspberry Pi and handles t
 - Provides logging for diagnostics
 
 **Key Features:**
-- Automatic reconnection to controller and Arduino if connection fails
 - Serial communication testing on startup
 - Color selection via Xbox buttons (A=Green, B=Red, X=Blue, Y=Yellow)
 - Mode selection and control flow
