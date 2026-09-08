@@ -17,6 +17,10 @@ Color detect sometimes sees incorrect ball colors.
 
 ---
 
-## 3. Autonomous Mode Testing ⚠️ **PRIORITY**
+## 3. Autonomous Mode Testing ⚠️ 
 We have the code set up for autonomous mode, but we never got a solid shot at testing it. Review the documentation for the code found in `/docs` and see if you can have the robot reliably move to the bins automatically.
+
+**Note** 
+* If you wanna do this, make sure that you have a laptop/server with a GPU to run the YOLO model on
+* If you want to work on this at the school, make sure both the pi and the GPU server are connected to the ATMAE Router. This won't work on school wifi.
 
