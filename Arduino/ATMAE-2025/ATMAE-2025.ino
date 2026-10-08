@@ -143,8 +143,8 @@ bool screwOverRide = false;  //Used to control screw during teleop
 // Variable to hold the color being sorted
 int currentPin = 1;
 String colorPins[4];
-bool reachedTop = true;
-bool reachedBottom = true;
+bool reachedTop = false;
+bool reachedBottom = false;
 bool innitPosRed = false;
 bool innitPosYel = false;
 /*
@@ -267,19 +267,19 @@ void loop() {
   RMotor = 1500;
   LMotor = 1500;
 
+// ======== Temp Out ========
+ reachedTop = (digitalRead(topLiftLimitSwitch) == 0);
+ reachedBottom = (digitalRead(bottomLiftLimitSwitch) == 0);
 
-
-  if ((digitalRead(topLiftLimitSwitch) == 0) && (reachedTop)) {
+ if(reachedTop || reachedBottom)
+ {
     screw.writeMicroseconds(1500);
-    reachedTop = false;
-    screwStopped = true;
-  }
+    screwStop = true;
+ }
 
-  if ((digitalRead(bottomLiftLimitSwitch) == 0) && (reachedBottom)) {
-    screw.writeMicroseconds(1500);
-    reachedTop = false;
-    screwStopped = true;
-  }
+
+
+
 
   //Drive and Turn
   if (abs(drive) > 0) {
@@ -813,20 +813,30 @@ void turnAround() {
 }
 //moves screw to top
 void screwUp() {
+  if(reachedTop)
+  {
+    screw.writeMicroseconds(1500);
+    screwStop = true;
+    return;
+  }
+  else
+  {
     screw.writeMicroseconds(1000);
-
-  reachedTop = true;
-  delay(1000);
-  reachedBottom = true;
+  }
 }
 // moving the screw motor down
 void screwDown() {
-  screw.writeMicroseconds(2000);
 
-  reachedBottom = true;
-  delay(1000);
-
-  reachedTop = true;
+  if(reachedBottom)
+  {
+    screw.writeMicroseconds(1500);
+    screwStop = true;
+    return;
+  }
+  else
+  {
+    screw.writeMicroseconds(2000);
+  }
 }
 //shake robot
 void shake() {
