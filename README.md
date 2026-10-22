@@ -18,4 +18,9 @@ This project involves building a robot designed to compete in a 1v1v1v1 object c
 - Motors: REV-41-1291 Hex Motor
 - Smart Sensors: PiCamera, USB Camera
 - 2 YOLOv11m models used (Intended to run on a computer with dedicated NVIDIA GPU) 
-- Power Supply: Dewalt Battery 
+- Power Supply: Dewalt Battery
+
+## Raspberry Pi Attributes
+- Username: ecu
+- Password: ecu
+- IP Address: 192.168.0.129
